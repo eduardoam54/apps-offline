@@ -1,0 +1,41 @@
+# Dependencias
+node_modules/
+.npm/
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Builds nativos (gerados pelo prebuild, nao versionar)
+android/
+ios/
+*.apk
+*.aab
+*.ipa
+
+# Assinatura / segredos - NUNCA versionar
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.*
+!.env.example
+google-services.json
+GoogleService-Info.plist
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
