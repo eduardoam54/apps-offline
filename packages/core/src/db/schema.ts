@@ -1,0 +1,190 @@
+/**
+ * Schema do banco local (SQLite via Drizzle).
+ *
+ * Convencoes aplicadas em todas as tabelas:
+ *   - id textual ordenavel (ver id.ts)
+ *   - dinheiro em coluna `integer`, sempre centavos
+ *   - datas em `text` ISO 8601
+ *   - exclusao logica via `deletado_em`, nunca DELETE
+ *
+ * Saldo do cliente NAO existe como coluna. E sempre derivado:
+ *   SUM(venda.valor_centavos) - SUM(pagamento.valor_centavos)
+ * Saldo gravado diverge do historico mais cedo ou mais tarde.
+ */
+import { sql } from 'drizzle-orm';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+export const cliente = sqliteTable(
+  'cliente',
+  {
+    id: text('id').primaryKey(),
+    nome: text('nome').notNull(),
+    apelido: text('apelido'),
+    telefone: text('telefone'),
+    fotoUri: text('foto_uri'),
+    /** Teto de fiado. null = sem limite definido. */
+    limiteCreditoCentavos: integer('limite_credito_centavos'),
+    observacao: text('observacao'),
+    criadoEm: text('criado_em').notNull(),
+    atualizadoEm: text('atualizado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [
+    index('idx_cliente_nome').on(t.nome),
+    index('idx_cliente_ativo').on(t.deletadoEm),
+  ]
+);
+
+export const venda = sqliteTable(
+  'venda',
+  {
+    id: text('id').primaryKey(),
+    clienteId: text('cliente_id')
+      .notNull()
+      .references(() => cliente.id),
+    /** Dia civil da venda. */
+    data: text('data').notNull(),
+    /**
+     * Total da venda. Fonte da verdade mesmo quando ha itens: e recalculado a
+     * partir deles na gravacao. Assim o calculo de saldo — a consulta mais
+     * frequente do app — nunca precisa fazer JOIN com venda_item.
+     */
+    valorCentavos: integer('valor_centavos').notNull(),
+    descricao: text('descricao'),
+    /** Ultima vez que esta venda entrou numa cobranca enviada. */
+    cobradoEm: text('cobrado_em'),
+    criadoEm: text('criado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [
+    index('idx_venda_cliente').on(t.clienteId, t.deletadoEm),
+    index('idx_venda_data').on(t.data),
+  ]
+);
+
+export const vendaItem = sqliteTable(
+  'venda_item',
+  {
+    id: text('id').primaryKey(),
+    vendaId: text('venda_id')
+      .notNull()
+      .references(() => venda.id, { onDelete: 'cascade' }),
+    descricao: text('descricao').notNull(),
+    /** Quantidade em milesimos: 1,5 kg = 1500. */
+    quantidadeMilesimos: integer('quantidade_milesimos').notNull().default(1000),
+    valorUnitarioCentavos: integer('valor_unitario_centavos').notNull(),
+    ordem: integer('ordem').notNull().default(0),
+  },
+  (t) => [index('idx_item_venda').on(t.vendaId)]
+);
+
+export const pagamento = sqliteTable(
+  'pagamento',
+  {
+    id: text('id').primaryKey(),
+    clienteId: text('cliente_id')
+      .notNull()
+      .references(() => cliente.id),
+    data: text('data').notNull(),
+    valorCentavos: integer('valor_centavos').notNull(),
+    forma: text('forma', { enum: ['dinheiro', 'pix', 'cartao', 'outro'] })
+      .notNull()
+      .default('dinheiro'),
+    /** Preenchido quando o pagamento quita uma parcela de acordo. */
+    acordoParcelaId: text('acordo_parcela_id'),
+    observacao: text('observacao'),
+    criadoEm: text('criado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [
+    index('idx_pagamento_cliente').on(t.clienteId, t.deletadoEm),
+    index('idx_pagamento_data').on(t.data),
+  ]
+);
+
+/**
+ * Acordo de parcelamento.
+ *
+ * ATENCAO: acordo NAO lanca divida. Ele e uma releitura de divida que ja existe
+ * em `venda`. Se gerasse valor proprio, o saldo do cliente dobraria. Quem mexe
+ * no saldo continua sendo exclusivamente `venda` e `pagamento`.
+ */
+export const acordo = sqliteTable(
+  'acordo',
+  {
+    id: text('id').primaryKey(),
+    clienteId: text('cliente_id')
+      .notNull()
+      .references(() => cliente.id),
+    valorTotalCentavos: integer('valor_total_centavos').notNull(),
+    numParcelas: integer('num_parcelas').notNull(),
+    status: text('status', { enum: ['ativo', 'cumprido', 'quebrado'] })
+      .notNull()
+      .default('ativo'),
+    observacao: text('observacao'),
+    criadoEm: text('criado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [index('idx_acordo_cliente').on(t.clienteId, t.status)]
+);
+
+export const acordoParcela = sqliteTable(
+  'acordo_parcela',
+  {
+    id: text('id').primaryKey(),
+    acordoId: text('acordo_id')
+      .notNull()
+      .references(() => acordo.id, { onDelete: 'cascade' }),
+    numero: integer('numero').notNull(),
+    valorCentavos: integer('valor_centavos').notNull(),
+    vencimento: text('vencimento').notNull(),
+    /** Dia em que foi quitada. null = em aberto. */
+    pagoEm: text('pago_em'),
+  },
+  (t) => [
+    index('idx_parcela_acordo').on(t.acordoId, t.numero),
+    index('idx_parcela_vencimento').on(t.vencimento, t.pagoEm),
+  ]
+);
+
+/**
+ * Catalogo leve, alimentado pelo proprio uso: quanto mais o comerciante lanca
+ * "pao frances", mais alto ele aparece na sugestao. Evita obrigar o cadastro
+ * previo de produtos, que e exatamente a burocracia que o app promete nao ter.
+ */
+export const produtoFrequente = sqliteTable(
+  'produto_frequente',
+  {
+    id: text('id').primaryKey(),
+    descricao: text('descricao').notNull().unique(),
+    valorPadraoCentavos: integer('valor_padrao_centavos').notNull(),
+    usos: integer('usos').notNull().default(1),
+    atualizadoEm: text('atualizado_em').notNull(),
+  },
+  (t) => [index('idx_produto_usos').on(t.usos)]
+);
+
+/** Chave/valor para configuracao: nome da loja, template de cobranca, PIN. */
+export const config = sqliteTable('config', {
+  chave: text('chave').primaryKey(),
+  valor: text('valor').notNull(),
+  atualizadoEm: text('atualizado_em')
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+export type Cliente = typeof cliente.$inferSelect;
+export type NovoCliente = typeof cliente.$inferInsert;
+export type Venda = typeof venda.$inferSelect;
+export type NovaVenda = typeof venda.$inferInsert;
+export type VendaItem = typeof vendaItem.$inferSelect;
+export type NovoVendaItem = typeof vendaItem.$inferInsert;
+export type Pagamento = typeof pagamento.$inferSelect;
+export type NovoPagamento = typeof pagamento.$inferInsert;
+export type Acordo = typeof acordo.$inferSelect;
+export type NovoAcordo = typeof acordo.$inferInsert;
+export type AcordoParcela = typeof acordoParcela.$inferSelect;
+export type NovaAcordoParcela = typeof acordoParcela.$inferInsert;
+export type ProdutoFrequente = typeof produtoFrequente.$inferSelect;
+export type FormaPagamento = Pagamento['forma'];
+export type StatusAcordo = Acordo['status'];

@@ -3,8 +3,8 @@
 Três aplicativos mobile (Android/iOS) **offline-first**, sem cadastro, sem servidor
 e sem custo de infraestrutura. Todo dado vive no SQLite do próprio aparelho.
 
-Este documento registra a **intenção** do projeto. Nenhum código de aplicação foi
-escrito ainda — a estrutura está montada e as decisões estão tomadas.
+Este documento registra a **intenção** do projeto e as decisões tomadas. As
+convenções de código estão no `CLAUDE.md`.
 
 ---
 
@@ -12,7 +12,7 @@ escrito ainda — a estrutura está montada e as decisões estão tomadas.
 
 | Pasta | App | Público | Status |
 |---|---|---|---|
-| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | Planejado |
+| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fase 0 concluída** — roda no emulador |
 | `apps/orcamento` | Orçamento / ordem de serviço em PDF | Autônomo (eletricista, encanador, montador) | Planejado |
 | `apps/veiculo` | Manutenção e abastecimento de veículo | Motorista de app, dono de frota pequena | Planejado |
 
