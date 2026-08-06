@@ -12,17 +12,19 @@ import {
 import { Botao, Cartao, EstadoVazio, LinhaLista, Separador, useTema } from '@repo/ui';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { cobrarNoWhatsApp } from '@/cobranca';
 import { db } from '@/db';
+import { exportarExtratoDoCliente } from '@/exportar';
 import { useConfig } from '@/hooks/useConfig';
 
 export default function DetalheCliente() {
   const tema = useTema();
   const config = useConfig();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [gerandoPdf, setGerandoPdf] = useState(false);
 
   const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
   const { data: vendas } = useLiveQuery(consultaVendasDoCliente(db, id), [id]);
@@ -52,6 +54,35 @@ export default function DetalheCliente() {
   const deve = saldo > 0;
   const limite = cliente.limiteCreditoCentavos;
   const passouDoLimite = limite != null && saldo > limite;
+
+  /**
+   * Manda o extrato como PDF.
+   *
+   * Usa a mesma lista que esta na tela, e nao uma consulta nova: o documento
+   * precisa dizer exatamente o que o comerciante esta vendo na hora em que ele
+   * aperta o botao, com o cliente do lado.
+   */
+  async function mandarExtrato() {
+    setGerandoPdf(true);
+    try {
+      const compartilhou = await exportarExtratoDoCliente(
+        { nome: cliente!.nome, telefone: cliente!.telefone },
+        extrato,
+        { nome: config.nomeDaLoja, telefone: config.telefoneDaLoja || null }
+      );
+
+      if (!compartilhou) {
+        Alert.alert(
+          'Compartilhamento indisponível',
+          'Este aparelho não oferece o menu de compartilhar arquivos.'
+        );
+      }
+    } catch (falha) {
+      Alert.alert('Não deu para gerar o extrato', String(falha));
+    } finally {
+      setGerandoPdf(false);
+    }
+  }
 
   async function arquivar() {
     const aviso = deve
@@ -255,6 +286,15 @@ export default function DetalheCliente() {
                 </View>
               ))}
             </View>
+          )}
+
+          {extrato.length > 0 && (
+            <Botao
+              titulo="Extrato em PDF"
+              variante="secundario"
+              carregando={gerandoPdf}
+              aoTocar={mandarExtrato}
+            />
           )}
         </View>
 

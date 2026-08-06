@@ -192,6 +192,68 @@ export async function totalAReceber(db: BancoSQLite): Promise<Centavos> {
   return (linhas[0] as { total: number } | undefined)?.total ?? 0;
 }
 
+/** Uma linha da planilha exportada: venda ou pagamento, com o nome do cliente. */
+export type LinhaExportacao = {
+  cliente: string;
+  data: string;
+  tipo: 'venda' | 'pagamento';
+  descricao: string | null;
+  /** So em pagamento. */
+  forma: string | null;
+  valorCentavos: Centavos;
+};
+
+/**
+ * Todos os lancamentos da caderneta, para a planilha.
+ *
+ * DUAS CONSULTAS SEPARADAS, e nao uma com dois JOIN. A armadilha do produto
+ * cartesiano vale aqui igual ao saldo: juntar venda e pagamento na mesma
+ * consulta multiplicaria as linhas e a planilha mostraria dividas que nunca
+ * existiram. Cada consulta abaixo tem UM join, com a tabela pai, o que e seguro.
+ *
+ * Lancamento de cliente arquivado entra. Arquivar significa "esse nao esta mais
+ * na minha lista", nao "essa venda nunca aconteceu" — e uma planilha de
+ * historico que esconde movimento passado nao serve para conferir nada.
+ */
+export async function listarLancamentosParaExportar(
+  db: BancoSQLite
+): Promise<LinhaExportacao[]> {
+  const vendas = await db
+    .select({
+      cliente: cliente.nome,
+      data: venda.data,
+      descricao: venda.descricao,
+      valorCentavos: venda.valorCentavos,
+    })
+    .from(venda)
+    .innerJoin(cliente, eq(venda.clienteId, cliente.id))
+    .where(isNull(venda.deletadoEm));
+
+  const pagamentos = await db
+    .select({
+      cliente: cliente.nome,
+      data: pagamento.data,
+      descricao: pagamento.observacao,
+      forma: pagamento.forma,
+      valorCentavos: pagamento.valorCentavos,
+    })
+    .from(pagamento)
+    .innerJoin(cliente, eq(pagamento.clienteId, cliente.id))
+    .where(isNull(pagamento.deletadoEm));
+
+  return [
+    ...(vendas as Omit<LinhaExportacao, 'tipo' | 'forma'>[]).map((v) => ({
+      ...v,
+      tipo: 'venda' as const,
+      forma: null,
+    })),
+    ...(pagamentos as Omit<LinhaExportacao, 'tipo'>[]).map((p) => ({
+      ...p,
+      tipo: 'pagamento' as const,
+    })),
+  ];
+}
+
 /** Um item do extrato — venda ou pagamento — ja unificado para exibir na tela. */
 export type ItemExtrato = {
   id: string;

@@ -119,6 +119,7 @@ export default function RootLayout() {
             <Stack.Screen name="cobranca/lote" options={{ title: 'Cobrar clientes' }} />
             <Stack.Screen name="acordo/novo" options={{ title: 'Parcelar dívida' }} />
             <Stack.Screen name="acordo/[id]" options={{ title: 'Acordo' }} />
+            <Stack.Screen name="exportar" options={{ title: 'Exportar' }} />
             <Stack.Screen name="backup" options={{ title: 'Backup' }} />
             <Stack.Screen name="seguranca" options={{ title: 'Trava do app' }} />
           </Stack>

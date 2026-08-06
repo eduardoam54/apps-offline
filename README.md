@@ -12,7 +12,7 @@ convenções de código estão no `CLAUDE.md`.
 
 | Pasta | App | Público | Status |
 |---|---|---|---|
-| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fase 0 concluída** — roda no emulador |
+| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fases 0–6 concluídas** — MVP completo, falta monetizar e publicar |
 | `apps/orcamento` | Orçamento / ordem de serviço em PDF | Autônomo (eletricista, encanador, montador) | Planejado |
 | `apps/veiculo` | Manutenção e abastecimento de veículo | Motorista de app, dono de frota pequena | Planejado |
 

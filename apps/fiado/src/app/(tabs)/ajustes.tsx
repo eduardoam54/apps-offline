@@ -141,6 +141,11 @@ export default function Ajustes() {
         </Text>
 
         <Botao
+          titulo="Exportar relatórios e planilhas"
+          variante="secundario"
+          aoTocar={() => router.push('/exportar')}
+        />
+        <Botao
           titulo="Backup e restauração"
           variante="secundario"
           aoTocar={() => router.push('/backup')}

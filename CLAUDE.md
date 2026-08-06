@@ -40,6 +40,10 @@ inadimplente". Na duvida, se a resposta e especifica de um app, ela nao vai para
 - `@repo/core` — entrada principal e SO logica pura (money, date, id) e por isso
   roda no vitest sem simular React Native. O acesso ao banco fica no subcaminho
   `@repo/core/db`, que depende de modulo nativo.
+- `@repo/docs` — mesma divisao: a entrada principal monta texto (mensagem de
+  cobranca, HTML dos documentos, CSV) e e testavel em Node puro; gerar o PDF e
+  gravar arquivo ficam em `@repo/docs/arquivo`, que usa expo-print e
+  expo-sharing.
 - `@repo/ui` — tema e componentes.
 
 ## Armadilhas ja resolvidas (nao reintroduzir)
@@ -53,6 +57,14 @@ inadimplente". Na duvida, se a resposta e especifica de um app, ela nao vai para
   `v.cliente_id = v.id`, nunca verdadeira, e o saldo da zero em tudo. O `toSQL()`
   mostra a versao qualificada e esconde o problema — so teste contra banco real
   pega isso.
+- **CSV brasileiro usa `;` e precisa de BOM.** O Excel separa colunas pelo
+  separador de lista do idioma do sistema, que em pt-BR e ponto e virgula: com
+  virgula, a planilha inteira cai numa coluna so. Sem BOM no inicio, ele le como
+  ANSI e todo acento vira lixo. Nenhum dos dois da erro — so produz um arquivo
+  que o usuario culpa o app por gerar.
+- **PDF nao pode depender de recurso externo.** O `expo-print` renderiza o HTML
+  num WebView do aparelho. Fonte de CDN ou imagem por URL nao carrega — o app e
+  offline — e o documento sai torto justamente para quem esta sem internet.
 - **`typedRoutes` fica desligado.** Em monorepo o gerador lista arquivos de codigo
   como rota (ate `saldo.test`) e ao mesmo tempo perde rotas de verdade, quebrando
   o typecheck inteiro.
@@ -81,6 +93,18 @@ Depois de qualquer mudanca em `packages/core/src/db/schema.ts`, rode
 
 ## Estado
 
-Fase 0 concluida. Proxima: fase 1 (cliente CRUD, lancar divida, receber
-pagamento, saldo, extrato). O plano completo esta em `README.md` e nos README de
-cada pasta.
+App `fiado`, fases 0 a 6 concluidas:
+
+| Fase | O que entrou |
+|---|---|
+| 0 | fundacao: expo-router, banco, tema |
+| 1 | cliente, lancar divida, receber pagamento, saldo, extrato |
+| 2 | cobranca por WhatsApp, alertas, ajustes |
+| 3 | itens da venda, produtos frequentes |
+| 4 | acordo de parcelamento, limite de credito |
+| 5 | backup, restauracao, trava por PIN |
+| 6 | exportar extrato e relatorio em PDF, planilhas em CSV |
+
+Proxima: fase 7 (monetizacao — limite do plano gratuito e desbloqueio).
+
+O plano completo esta em `README.md` e nos README de cada pasta.
