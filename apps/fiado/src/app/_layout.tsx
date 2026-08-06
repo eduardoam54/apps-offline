@@ -9,8 +9,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { gravarCopiaAutomatica } from '@/backup';
+import { TelaBoasVindas } from '@/components/TelaBoasVindas';
 import { TelaTrava } from '@/components/TelaTrava';
 import { db } from '@/db';
+import { useConfig } from '@/hooks/useConfig';
 import { useLicenca } from '@/licenca';
 import { temPinDefinido } from '@/trava';
 
@@ -27,7 +29,9 @@ export default function RootLayout() {
   const { success, error } = useMigracoes(db);
   const [travado, setTravado] = useState(false);
   const [verificouTrava, setVerificouTrava] = useState(false);
+  const [passouBoasVindas, setPassouBoasVindas] = useState(false);
   const carregarLicenca = useLicenca((e) => e.carregar);
+  const config = useConfig();
 
   // O plano vem de um arquivo local, nao do banco — ler cedo evita a tela
   // aparecer por um instante com os recursos pagos bloqueados para quem pagou.
@@ -35,11 +39,13 @@ export default function RootLayout() {
     carregarLicenca();
   }, [carregarLicenca]);
 
+  // A splash so sai quando da para decidir O QUE mostrar. Sem esperar a config,
+  // o app apareceria por um instante antes de ser trocado pelas boas-vindas.
   useEffect(() => {
-    if (success || error) {
+    if (error || (success && config.carregado)) {
       SplashScreen.hideAsync();
     }
-  }, [success, error]);
+  }, [success, error, config.carregado]);
 
   // Depois de migrar: ve se ha PIN e faz a copia automatica do dia.
   useEffect(() => {
@@ -95,8 +101,8 @@ export default function RootLayout() {
     );
   }
 
-  // Splash continua na tela ate a migracao terminar e a trava ser conferida.
-  if (!success || !verificouTrava) return null;
+  // Splash continua na tela ate migrar, conferir a trava e ler a configuracao.
+  if (!success || !verificouTrava || !config.carregado) return null;
 
   if (travado) {
     return (
@@ -104,6 +110,19 @@ export default function RootLayout() {
         <ProvedorTema tema={tema}>
           <StatusBar style="dark" />
           <TelaTrava aoDestravar={() => setTravado(false)} />
+        </ProvedorTema>
+      </SafeAreaProvider>
+    );
+  }
+
+  // Depois da trava, nunca antes: quem tem PIN protegeu a caderneta inteira, e
+  // as boas-vindas fazem parte dela.
+  if (!config.onboardingConcluido && !passouBoasVindas) {
+    return (
+      <SafeAreaProvider>
+        <ProvedorTema tema={tema}>
+          <StatusBar style="dark" />
+          <TelaBoasVindas aoConcluir={() => setPassouBoasVindas(true)} />
         </ProvedorTema>
       </SafeAreaProvider>
     );

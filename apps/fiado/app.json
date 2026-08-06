@@ -38,7 +38,8 @@
         }
       ],
       "expo-sqlite",
-      "expo-sharing"
+      "expo-sharing",
+      "./plugins/withHeapDoGradle"
     ],
     "experiments": {
       "reactCompiler": true

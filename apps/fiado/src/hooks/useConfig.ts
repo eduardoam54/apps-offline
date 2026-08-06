@@ -9,6 +9,8 @@ export type ConfigDaLoja = {
   telefoneDaLoja: string;
   templateCobranca: string;
   onboardingConcluido: boolean;
+  /** Falso ate a primeira leitura. Ver o comentario em viva.ts. */
+  carregado: boolean;
 };
 
 /**
@@ -19,7 +21,7 @@ export type ConfigDaLoja = {
  * mecanismo de invalidacao.
  */
 export function useConfig(): ConfigDaLoja {
-  const { data } = useConsultaViva(consultaConfig(db), ['config'], []);
+  const { data, carregado } = useConsultaViva(consultaConfig(db), ['config'], []);
 
   return useMemo(() => {
     const mapa = mapearConfig((data ?? []) as { chave: string; valor: string }[]);
@@ -29,6 +31,7 @@ export function useConfig(): ConfigDaLoja {
       telefoneDaLoja: mapa[CHAVES.telefoneDaLoja] ?? '',
       templateCobranca: mapa[CHAVES.templateCobranca] ?? TEMPLATE_COBRANCA_PADRAO,
       onboardingConcluido: mapa[CHAVES.onboardingConcluido] === 'sim',
+      carregado,
     };
-  }, [data]);
+  }, [data, carregado]);
 }

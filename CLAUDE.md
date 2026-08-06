@@ -106,8 +106,9 @@ la dentro se perde no proximo `expo prebuild --clean`.
 
 - **O heap padrao do Gradle nao da conta.** O template vem com
   `org.gradle.jvmargs=-Xmx2048m` e o D8 morre com `OutOfMemoryError` no merge das
-  dex, num erro que parece problema de codigo e nao e. Suba para `-Xmx3584m` em
-  `android/gradle.properties` — e refaca isso depois de cada prebuild.
+  dex, num erro que parece problema de codigo e nao e. Ja resolvido pelo plugin
+  `plugins/withHeapDoGradle.js`, que reaplica `-Xmx3584m` a cada prebuild — nao
+  edite `gradle.properties` na mao.
 - **Desligue o emulador antes de compilar.** Numa maquina de 16 GB o emulador
   sozinho leva a memoria livre para ~1 GB e o build falha por falta dela.
 - **`edgeToEdgeEnabled` saiu do app.json.** O Android 16 torna edge-to-edge
@@ -133,13 +134,21 @@ App `fiado`, fases 0 a 6 concluidas:
 | 5 | backup, restauracao, trava por PIN |
 | 6 | exportar extrato e relatorio em PDF, planilhas em CSV |
 | 7 | plano gratuito x pago: limite de clientes, gate de exportar, tela de plano |
+| 8 | boas-vindas, icone proprio, eas.json, politica de privacidade |
 
 O paywall esta inteiro EXCETO a compra: `apps/fiado/src/loja.ts` e o unico ponto
 de encaixe do RevenueCat e hoje reporta "compra indisponivel". Ele so pode ser
 ligado depois de o app ser publicado, porque produto de compra precisa existir
 na Play Console primeiro. O arquivo lista os passos na ordem.
 
-Proxima: publicacao (ANDROID_HOME, icone, politica de privacidade, primeiro
-build) e entao ligar a loja.
+Falta para publicar, e cada um depende de uma decisao ou conta sua:
+
+1. hospedar a `POLITICA-DE-PRIVACIDADE.md` numa URL publica (a Play Console exige)
+2. conta na Play Console (US$ 25) e build de release assinado (`eas build`)
+3. publicar em teste fechado e criar os produtos de compra
+4. so entao o RevenueCat, preenchendo `src/loja.ts`
+
+Sem cobertura de teste ate agora: as telas. Os testes sao de logica pura e banco
+— o bug do saldo so apareceu rodando o app no emulador.
 
 O plano completo esta em `README.md` e nos README de cada pasta.

@@ -1,8 +1,15 @@
 # Fiado — Caderneta de fiado digital
 
-**Status:** fases 0–7 concluídas · **Ordem:** 1º app a ser desenvolvido
+**Status:** fases 0–8 concluídas · **Ordem:** 1º app a ser desenvolvido
 
-O MVP está completo e o paywall está no lugar. Falta publicar e ligar a compra.
+O MVP está completo, o paywall está no lugar e o app roda no emulador com ícone
+próprio. Falta publicar e ligar a compra — o que depende de conta na Play
+Console. O texto da política de privacidade está em
+`POLITICA-DE-PRIVACIDADE.md` e precisa ser hospedado numa URL pública.
+
+Os ícones são gerados por `scripts/gerar-icones.js` (sem dependências, roda com
+`node`). É um marco geométrico honesto na cor do app, não identidade visual
+definitiva — trocar por arte de verdade é só substituir os PNGs.
 
 Substitui o caderno de papel do comerciante que vende fiado.
 

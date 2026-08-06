@@ -32,9 +32,19 @@ export function useConsultaViva<T>(
   /** Toda tabela lida pela consulta, INCLUSIVE dentro de `sql` cru. */
   tabelas: readonly string[],
   deps: unknown[] = []
-): { data: T[]; erro: Error | undefined } {
+): { data: T[]; carregado: boolean; erro: Error | undefined } {
   const [data, setData] = useState<T[]>([]);
   const [erro, setErro] = useState<Error | undefined>(undefined);
+
+  /**
+   * Falso ate a primeira resposta do banco.
+   *
+   * Sem isso nao da para diferenciar "ainda nao li" de "li e nao tem nada": as
+   * duas situacoes sao uma lista vazia. Quem depende dessa diferenca — o
+   * onboarding, que so aparece para quem nunca configurou — mostraria a tela de
+   * boas-vindas por um instante a cada abertura do app.
+   */
+  const [carregado, setCarregado] = useState(false);
 
   useEffect(() => {
     // Evita gravar estado depois que a tela saiu: o listener pode disparar a
@@ -44,10 +54,17 @@ export function useConsultaViva<T>(
     const buscar = () => {
       consulta.then(
         (linhas) => {
-          if (ativo) setData(linhas);
+          if (!ativo) return;
+          setData(linhas);
+          setCarregado(true);
         },
         (falha: unknown) => {
-          if (ativo) setErro(falha instanceof Error ? falha : new Error(String(falha)));
+          if (!ativo) return;
+          setErro(falha instanceof Error ? falha : new Error(String(falha)));
+          // Erro tambem e resposta: quem espera "carregado" nao pode ficar preso
+          // numa tela de carregamento para sempre por causa de uma consulta que
+          // falhou.
+          setCarregado(true);
         }
       );
     };
@@ -67,5 +84,5 @@ export function useConsultaViva<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return { data, erro };
+  return { data, carregado, erro };
 }
