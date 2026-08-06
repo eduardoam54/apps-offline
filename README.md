@@ -115,8 +115,11 @@ Verificado na máquina de desenvolvimento:
 
 - Node 24.16.0 / npm 11.13.0
 - Android Studio + SDK em `%LOCALAPPDATA%\Android\Sdk`
+- `ANDROID_HOME` e `JAVA_HOME` configurados; `adb` e `emulator` no PATH
+- AVDs disponíveis: Pixel 8 Pro, Pixel 10 Pro
 - EAS CLI instalado globalmente
 - Git 2.54.0
 
-**Pendência conhecida:** `ANDROID_HOME` não está configurado no sistema. Precisa ser
-resolvido antes do primeiro build local.
+O primeiro build local do `fiado` foi feito e o app rodou no emulador. As
+armadilhas encontradas no caminho — heap do Gradle, memória com o emulador
+ligado, `edgeToEdgeEnabled` — estão no `CLAUDE.md`.
