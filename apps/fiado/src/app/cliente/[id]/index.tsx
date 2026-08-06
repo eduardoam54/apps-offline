@@ -196,10 +196,20 @@ export default function DetalheCliente() {
                   {indice > 0 && <Separador />}
                   <LinhaLista
                     titulo={item.tipo === 'venda' ? 'Fiado' : 'Pagamento'}
-                    subtitulo={item.descricao ?? (item.forma != null ? nomeDaForma(item.forma) : null)}
+                    subtitulo={
+                      item.descricao ??
+                      (item.qtdItens > 0
+                        ? `${item.qtdItens} ${item.qtdItens === 1 ? 'item' : 'itens'}`
+                        : item.forma != null
+                          ? nomeDaForma(item.forma)
+                          : null)
+                    }
                     rodape={formatarDataRelativa(item.data)}
                     valor={`${item.tipo === 'venda' ? '+' : '−'} ${formatarBRL(item.valorCentavos)}`}
                     corValor={item.tipo === 'venda' ? tema.cores.divida : tema.cores.pago}
+                    aoTocar={
+                      item.tipo === 'venda' ? () => router.push(`/venda/${item.id}`) : undefined
+                    }
                   />
                 </View>
               ))}

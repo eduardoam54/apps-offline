@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   consultaClientesComSaldo,
+  consultaItensDaVenda,
   consultaPagamentosDoCliente,
   consultaVendasDoCliente,
   montarExtrato,
@@ -11,6 +12,7 @@ import {
 } from './consultas';
 import { arquivarCliente, criarCliente } from './repos/cliente';
 import { excluirPagamento, receberPagamento } from './repos/pagamento';
+import { consultaProdutosFrequentes } from './repos/produto';
 import { excluirVenda, lancarVenda } from './repos/venda';
 import { bancoDeTeste } from './teste-helpers';
 import type { BancoSQLite } from './tipos';
@@ -225,6 +227,101 @@ describe('extrato', () => {
 
     const vendas = await consultaVendasDoCliente(db, c.id);
     expect(vendas).toHaveLength(0);
+  });
+});
+
+describe('produtos frequentes', () => {
+  it('aprende com os itens lancados', async () => {
+    const c = await clienteTeste();
+    await lancarVenda(db, {
+      clienteId: c.id,
+      itens: [
+        { descricao: 'Pão francês', valorUnitarioCentavos: 100 },
+        { descricao: 'Leite', valorUnitarioCentavos: 550 },
+      ],
+    });
+
+    const produtos = (await consultaProdutosFrequentes(db)) as { descricao: string; usos: number }[];
+    expect(produtos.map((p) => p.descricao).sort()).toEqual(['Leite', 'Pão francês']);
+  });
+
+  it('conta os usos e poe o mais usado na frente', async () => {
+    const c = await clienteTeste();
+    for (let i = 0; i < 3; i++) {
+      await lancarVenda(db, {
+        clienteId: c.id,
+        itens: [{ descricao: 'Pão francês', valorUnitarioCentavos: 100 }],
+      });
+    }
+    await lancarVenda(db, {
+      clienteId: c.id,
+      itens: [{ descricao: 'Leite', valorUnitarioCentavos: 550 }],
+    });
+
+    const produtos = (await consultaProdutosFrequentes(db)) as { descricao: string; usos: number }[];
+    expect(produtos[0]?.descricao).toBe('Pão francês');
+    expect(produtos[0]?.usos).toBe(3);
+    expect(produtos[1]?.usos).toBe(1);
+  });
+
+  it('guarda o preco mais recente, nao o primeiro', async () => {
+    // Preco de mercado sobe. Sugerir o valor de tres meses atras seria pior do
+    // que nao sugerir nada.
+    const c = await clienteTeste();
+    await lancarVenda(db, {
+      clienteId: c.id,
+      itens: [{ descricao: 'Leite', valorUnitarioCentavos: 550 }],
+    });
+    await lancarVenda(db, {
+      clienteId: c.id,
+      itens: [{ descricao: 'Leite', valorUnitarioCentavos: 620 }],
+    });
+
+    const produtos = (await consultaProdutosFrequentes(db)) as {
+      descricao: string;
+      valorPadraoCentavos: number;
+    }[];
+    expect(produtos[0]?.valorPadraoCentavos).toBe(620);
+  });
+
+  it('nao registra nada quando a venda e so de valor', async () => {
+    const c = await clienteTeste();
+    await lancarVenda(db, { clienteId: c.id, valorCentavos: 4200 });
+
+    expect(await consultaProdutosFrequentes(db)).toHaveLength(0);
+  });
+});
+
+describe('itens da venda', () => {
+  it('conta os itens no extrato', async () => {
+    const c = await clienteTeste();
+    await lancarVenda(db, {
+      clienteId: c.id,
+      itens: [
+        { descricao: 'Pão', valorUnitarioCentavos: 100 },
+        { descricao: 'Leite', valorUnitarioCentavos: 550 },
+      ],
+    });
+    await lancarVenda(db, { clienteId: c.id, valorCentavos: 1000 });
+
+    const vendas = (await consultaVendasDoCliente(db, c.id)) as { qtdItens: number }[];
+    const contagens = vendas.map((v) => v.qtdItens).sort();
+    expect(contagens).toEqual([0, 2]);
+  });
+
+  it('devolve os itens na ordem digitada', async () => {
+    const c = await clienteTeste();
+    const v = await lancarVenda(db, {
+      clienteId: c.id,
+      itens: [
+        { descricao: 'Primeiro', valorUnitarioCentavos: 100 },
+        { descricao: 'Segundo', valorUnitarioCentavos: 200 },
+        { descricao: 'Terceiro', valorUnitarioCentavos: 300 },
+      ],
+    });
+
+    const itens = (await consultaItensDaVenda(db, v.id)) as { descricao: string }[];
+    expect(itens.map((i) => i.descricao)).toEqual(['Primeiro', 'Segundo', 'Terceiro']);
   });
 });
 

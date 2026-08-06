@@ -4,6 +4,8 @@ import {
   dividirParcelas,
   formatarBRL,
   formatarNumero,
+  formatarQuantidade,
+  parseQuantidade,
   parseValorBR,
   somar,
   subtrair,
@@ -115,6 +117,37 @@ describe('totalDoItem', () => {
 
   it('recusa quantidade fracionaria', () => {
     expect(() => totalDoItem(250, 1.5)).toThrow();
+  });
+});
+
+describe('parseQuantidade / formatarQuantidade', () => {
+  it('le quantidade inteira e fracionada', () => {
+    expect(parseQuantidade('1')).toBe(1000);
+    expect(parseQuantidade('6')).toBe(6000);
+    expect(parseQuantidade('1,5')).toBe(1500);
+    expect(parseQuantidade('0,350')).toBe(350);
+    expect(parseQuantidade('2.5')).toBe(2500);
+  });
+
+  it('recusa o que nao serve como quantidade', () => {
+    expect(parseQuantidade('')).toBeNull();
+    expect(parseQuantidade('0')).toBeNull();
+    expect(parseQuantidade('abc')).toBeNull();
+    expect(parseQuantidade('-2')).toBeNull();
+  });
+
+  it('formata sem zero sobrando a direita', () => {
+    expect(formatarQuantidade(1000)).toBe('1');
+    expect(formatarQuantidade(1500)).toBe('1,5');
+    expect(formatarQuantidade(350)).toBe('0,35');
+    expect(formatarQuantidade(1050)).toBe('1,05');
+    expect(formatarQuantidade(1234)).toBe('1,234');
+  });
+
+  it('ida e volta preserva a quantidade', () => {
+    for (const milesimos of [1000, 1500, 350, 1234, 250, 10000]) {
+      expect(parseQuantidade(formatarQuantidade(milesimos))).toBe(milesimos);
+    }
   });
 });
 

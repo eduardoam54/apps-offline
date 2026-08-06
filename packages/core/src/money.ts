@@ -152,6 +152,46 @@ export function totalDoItem(
 }
 
 /**
+ * Le a quantidade digitada e devolve milesimos inteiros.
+ *
+ * Aceita "1", "1,5", "0,350" e "2.5". Diferente do dinheiro, aqui a virgula e o
+ * ponto sao ambos separador decimal e nao existe agrupamento de milhar: ninguem
+ * vende 1.500 kg de pao de uma vez, mas vende 1,5.
+ *
+ * Devolve null para vazio, texto invalido ou zero — quantidade zero num item de
+ * venda e sempre erro de digitacao.
+ */
+export function parseQuantidade(texto: string): Milesimos | null {
+  if (typeof texto !== 'string') return null;
+
+  const limpo = texto.replace(/\s/g, '').replace(',', '.');
+  if (limpo === '' || limpo === '.') return null;
+  if (!/^\d*\.?\d*$/.test(limpo)) return null;
+
+  const numero = Number(limpo);
+  if (!Number.isFinite(numero) || numero <= 0) return null;
+
+  const milesimos = Math.round(numero * 1000);
+  if (!Number.isSafeInteger(milesimos) || milesimos <= 0) return null;
+
+  return milesimos;
+}
+
+/** 1500 -> "1,5" · 1000 -> "1" · 350 -> "0,35". Sem zero a direita sobrando. */
+export function formatarQuantidade(milesimos: Milesimos): string {
+  if (!Number.isSafeInteger(milesimos)) {
+    throw new Error(`formatarQuantidade: esperava milesimos inteiros, recebeu ${milesimos}`);
+  }
+
+  const inteiro = Math.floor(milesimos / 1000);
+  const resto = milesimos % 1000;
+  if (resto === 0) return String(inteiro);
+
+  const decimais = String(resto).padStart(3, '0').replace(/0+$/, '');
+  return `${inteiro},${decimais}`;
+}
+
+/**
  * Divide um total em N parcelas sem perder nem inventar centavo.
  *
  * A soma das parcelas devolvidas e SEMPRE exatamente igual ao total. O resto da

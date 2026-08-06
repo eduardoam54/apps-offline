@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 
 import type { Centavos } from '../money';
-import { cliente, pagamento, venda } from './schema';
+import { cliente, pagamento, venda, vendaItem } from './schema';
 import type { BancoSQLite } from './tipos';
 
 /**
@@ -131,12 +131,41 @@ export function consultaRecebidoNoPeriodo(db: BancoSQLite, inicio: string, fim: 
     );
 }
 
+/**
+ * Quantos itens a venda tem.
+ *
+ * Mesma regra da correlacao de saldo: `venda.id` vai como texto SQL literal.
+ * Interpolar a coluna faria o Drizzle emitir so `"id"`, que dentro da subconsulta
+ * casaria com `venda_item.id` e a contagem sairia errada.
+ */
+const expressaoQtdItens = sql<number>`(
+  select count(*) from venda_item i where i.venda_id = venda.id
+)`;
+
 export function consultaVendasDoCliente(db: BancoSQLite, clienteId: string) {
   return db
-    .select()
+    .select({
+      id: venda.id,
+      clienteId: venda.clienteId,
+      data: venda.data,
+      valorCentavos: venda.valorCentavos,
+      descricao: venda.descricao,
+      cobradoEm: venda.cobradoEm,
+      criadoEm: venda.criadoEm,
+      qtdItens: expressaoQtdItens,
+    })
     .from(venda)
     .where(and(eq(venda.clienteId, clienteId), isNull(venda.deletadoEm)))
     .orderBy(desc(venda.data), desc(venda.criadoEm));
+}
+
+/** Itens de uma venda, na ordem em que foram digitados. */
+export function consultaItensDaVenda(db: BancoSQLite, vendaId: string) {
+  return db
+    .select()
+    .from(vendaItem)
+    .where(eq(vendaItem.vendaId, vendaId))
+    .orderBy(asc(vendaItem.ordem));
 }
 
 export function consultaPagamentosDoCliente(db: BancoSQLite, clienteId: string) {
@@ -172,6 +201,8 @@ export type ItemExtrato = {
   descricao: string | null;
   forma: string | null;
   criadoEm: string;
+  /** Só faz sentido em venda; zero quando o lançamento foi só de valor. */
+  qtdItens: number;
 };
 
 /**
@@ -183,7 +214,14 @@ export type ItemExtrato = {
  * ordenar duas listas pequenas aqui.
  */
 export function montarExtrato(
-  vendas: { id: string; data: string; valorCentavos: number; descricao: string | null; criadoEm: string }[],
+  vendas: {
+    id: string;
+    data: string;
+    valorCentavos: number;
+    descricao: string | null;
+    criadoEm: string;
+    qtdItens?: number;
+  }[],
   pagamentos: {
     id: string;
     data: string;
@@ -202,6 +240,7 @@ export function montarExtrato(
       descricao: v.descricao,
       forma: null,
       criadoEm: v.criadoEm,
+      qtdItens: v.qtdItens ?? 0,
     })),
     ...pagamentos.map((p) => ({
       id: p.id,
@@ -211,6 +250,7 @@ export function montarExtrato(
       descricao: p.observacao,
       forma: p.forma,
       criadoEm: p.criadoEm,
+      qtdItens: 0,
     })),
   ];
 

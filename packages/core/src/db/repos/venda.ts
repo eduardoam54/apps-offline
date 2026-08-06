@@ -5,6 +5,7 @@ import { novoId } from '../../id';
 import { somar, totalDoItem, type Centavos } from '../../money';
 import { venda, vendaItem, type Venda, type VendaItem } from '../schema';
 import type { BancoSQLite } from '../tipos';
+import { registrarProdutos } from './produto';
 
 export type ItemEntrada = {
   descricao: string;
@@ -70,6 +71,10 @@ export async function lancarVenda(db: BancoSQLite, dados: DadosVenda): Promise<V
         ordem: indice,
       }))
     );
+
+    // O catalogo de sugestoes se alimenta daqui. Fica dentro de lancarVenda, e
+    // nao a cargo da tela, para nenhum caminho de lancamento esquecer de fazer.
+    await registrarProdutos(db, itens);
   }
 
   return linha;
