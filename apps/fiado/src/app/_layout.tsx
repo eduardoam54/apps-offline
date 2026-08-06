@@ -1,15 +1,23 @@
 import { useMigracoes } from '@repo/core/db';
-import { temaFiado as tema } from '@repo/ui';
+import { ProvedorTema, temaFiado as tema } from '@repo/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { db } from '@/db';
 
 SplashScreen.preventAutoHideAsync();
+
+const opcoesCabecalho = {
+  headerStyle: { backgroundColor: tema.cores.primaria },
+  headerTintColor: tema.cores.textoInverso,
+  headerTitleStyle: { fontWeight: tema.peso.forte, fontSize: tema.fonte.subtitulo },
+  contentStyle: { backgroundColor: tema.cores.superficie },
+} as const;
 
 export default function RootLayout() {
   const { success, error } = useMigracoes(db);
@@ -42,19 +50,23 @@ export default function RootLayout() {
   if (!success) return null;
 
   return (
-    <SafeAreaProvider>
-      {/* Com edge-to-edge (obrigatorio no Android 15+) a barra de status nao
-          aceita mais cor de fundo — quem pinta atras dela e o header do Stack. */}
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: tema.cores.primaria },
-          headerTintColor: tema.cores.textoInverso,
-          headerTitleStyle: { fontWeight: tema.peso.forte, fontSize: tema.fonte.subtitulo },
-          contentStyle: { backgroundColor: tema.cores.superficie },
-        }}
-      />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ProvedorTema tema={tema}>
+          {/* Com edge-to-edge (obrigatorio no Android 15+) a barra de status nao
+              aceita mais cor de fundo — quem pinta atras dela e o cabecalho. */}
+          <StatusBar style="light" />
+          <Stack screenOptions={opcoesCabecalho}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="cliente/novo" options={{ title: 'Novo cliente' }} />
+            <Stack.Screen name="cliente/[id]/index" options={{ title: 'Cliente' }} />
+            <Stack.Screen name="cliente/[id]/editar" options={{ title: 'Editar cliente' }} />
+            <Stack.Screen name="venda/nova" options={{ title: 'Lançar fiado' }} />
+            <Stack.Screen name="pagamento/novo" options={{ title: 'Receber pagamento' }} />
+          </Stack>
+        </ProvedorTema>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

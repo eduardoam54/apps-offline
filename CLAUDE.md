@@ -44,6 +44,19 @@ inadimplente". Na duvida, se a resposta e especifica de um app, ela nao vai para
 
 ## Armadilhas ja resolvidas (nao reintroduzir)
 
+- **Saldo se calcula com subconsulta correlacionada, nunca com JOIN.** `LEFT JOIN
+  venda` + `LEFT JOIN pagamento` na mesma consulta faz produto cartesiano e infla
+  o saldo sem dar erro.
+- **Na correlacao, escreva `cliente.id` como texto SQL — nao `${cliente.id}`.** Ao
+  executar, o Drizzle renderiza a coluna interpolada sem qualificar a tabela: vira
+  so `"id"`, que dentro da subconsulta casa com `venda.id`. A condicao fica
+  `v.cliente_id = v.id`, nunca verdadeira, e o saldo da zero em tudo. O `toSQL()`
+  mostra a versao qualificada e esconde o problema — so teste contra banco real
+  pega isso.
+- **`typedRoutes` fica desligado.** Em monorepo o gerador lista arquivos de codigo
+  como rota (ate `saldo.test`) e ao mesmo tempo perde rotas de verdade, quebrando
+  o typecheck inteiro.
+
 - **Nao ligar `disableHierarchicalLookup` no metro.config.js.** Aparece em varios
   guias de monorepo, mas impede o Metro de achar dependencias aninhadas e quebra
   o bundle logo no entry point (`@expo/metro-runtime`).
