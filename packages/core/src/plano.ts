@@ -1,0 +1,79 @@
+/**
+ * Regras do plano gratuito e do plano pago.
+ *
+ * Logica pura de proposito: o que o paywall libera e uma decisao de produto que
+ * precisa ser lida, discutida e testada num arquivo so. Espalhada por dentro das
+ * telas, ela vira um `if` esquecido que bloqueia alguem que pagou.
+ *
+ * A premissa que ordena tudo aqui: O PAYWALL NUNCA INTERROMPE O EXPEDIENTE.
+ * Lancar fiado, receber pagamento, ver saldo, cobrar no WhatsApp e fazer backup
+ * funcionam igual nos dois planos, para sempre. O comerciante precisa conseguir
+ * usar o app de verdade — durante meses, se quiser — antes de decidir pagar.
+ */
+
+/**
+ * Quantos clientes cabem no plano gratuito.
+ *
+ * O limite e de CLIENTES, nunca de lancamentos. Limitar lancamento pararia o
+ * comerciante no meio do balcao, com fila na frente — o app viraria um estorvo
+ * exatamente no momento em que deveria estar provando que serve.
+ */
+export const LIMITE_CLIENTES_GRATIS = 15;
+
+/** Quando o aviso de "esta acabando" comeca a aparecer. */
+const VAGAS_PARA_AVISAR = 3;
+
+export type Plano = 'gratis' | 'pago';
+
+/**
+ * O que o plano gratuito NAO inclui.
+ *
+ * Backup e restauracao ficam FORA desta lista de proposito, contrariando o
+ * plano original. O comerciante so larga o caderno de papel quando acredita que
+ * nao vai perder a caderneta; cobrar por "nao perder seus dados" envenena
+ * justamente a confianca que faz ele adotar o app. Pior: um dia ele troca de
+ * celular, e restaurar precisa funcionar mesmo que a assinatura tenha vencido —
+ * senao o app estaria segurando o historico dele como refem.
+ */
+export type RecursoPago = 'exportar';
+
+export function recursoLiberado(_recurso: RecursoPago, plano: Plano): boolean {
+  return plano === 'pago';
+}
+
+/**
+ * Se cabe mais um cliente.
+ *
+ * Vale so para CADASTRAR. Quem ja esta acima do limite — restaurou um backup de
+ * 40 clientes, ou pagou e depois deixou vencer — continua lendo, editando,
+ * lancando e recebendo normalmente. Bloquear o acesso ao dado que ja e dele
+ * seria sequestro, nao monetizacao.
+ *
+ * A valvula de escape existe e e a mesma de sempre: arquivar um cliente que nao
+ * compra mais abre vaga, porque arquivado nao conta como ativo.
+ */
+export function podeCadastrarCliente(plano: Plano, clientesAtivos: number): boolean {
+  return plano === 'pago' || clientesAtivos < LIMITE_CLIENTES_GRATIS;
+}
+
+/** Quantos cadastros ainda cabem. `null` quando nao ha limite. */
+export function vagasRestantes(plano: Plano, clientesAtivos: number): number | null {
+  if (plano === 'pago') return null;
+  return Math.max(0, LIMITE_CLIENTES_GRATIS - clientesAtivos);
+}
+
+export type AvisoDeLimite = 'nenhum' | 'perto' | 'cheio';
+
+/**
+ * O que a lista de clientes deve mostrar sobre o limite.
+ *
+ * O aviso aparece ANTES de encher. Descobrir o limite so na hora de cadastrar,
+ * com o cliente esperando do outro lado do balcao, e o jeito mais rapido de
+ * transformar uma cobranca legitima em avaliacao de uma estrela.
+ */
+export function avisoDeLimite(plano: Plano, clientesAtivos: number): AvisoDeLimite {
+  const vagas = vagasRestantes(plano, clientesAtivos);
+  if (vagas == null) return 'nenhum';
+  if (vagas === 0) return 'cheio';
+  return vagas <= VAGAS_PARA_AVISAR ? 'perto' : 'nenhum';
+}

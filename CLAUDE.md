@@ -57,6 +57,10 @@ inadimplente". Na duvida, se a resposta e especifica de um app, ela nao vai para
   `v.cliente_id = v.id`, nunca verdadeira, e o saldo da zero em tudo. O `toSQL()`
   mostra a versao qualificada e esconde o problema — so teste contra banco real
   pega isso.
+- **Licenca nao mora na tabela `config`.** A `config` viaja dentro do backup, de
+  proposito. Se o plano morasse la, restaurar o backup de um conhecido daria o
+  plano pago de graca — e, pior, restaurar um backup antigo TIRARIA o plano de
+  quem pagou. Ela fica num arquivo em `Paths.document`, fora do banco.
 - **CSV brasileiro usa `;` e precisa de BOM.** O Excel separa colunas pelo
   separador de lista do idioma do sistema, que em pt-BR e ponto e virgula: com
   virgula, a planilha inteira cai numa coluna so. Sem BOM no inicio, ele le como
@@ -104,7 +108,14 @@ App `fiado`, fases 0 a 6 concluidas:
 | 4 | acordo de parcelamento, limite de credito |
 | 5 | backup, restauracao, trava por PIN |
 | 6 | exportar extrato e relatorio em PDF, planilhas em CSV |
+| 7 | plano gratuito x pago: limite de clientes, gate de exportar, tela de plano |
 
-Proxima: fase 7 (monetizacao — limite do plano gratuito e desbloqueio).
+O paywall esta inteiro EXCETO a compra: `apps/fiado/src/loja.ts` e o unico ponto
+de encaixe do RevenueCat e hoje reporta "compra indisponivel". Ele so pode ser
+ligado depois de o app ser publicado, porque produto de compra precisa existir
+na Play Console primeiro. O arquivo lista os passos na ordem.
+
+Proxima: publicacao (ANDROID_HOME, icone, politica de privacidade, primeiro
+build) e entao ligar a loja.
 
 O plano completo esta em `README.md` e nos README de cada pasta.

@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { gravarCopiaAutomatica } from '@/backup';
 import { TelaTrava } from '@/components/TelaTrava';
 import { db } from '@/db';
+import { useLicenca } from '@/licenca';
 import { temPinDefinido } from '@/trava';
 
 SplashScreen.preventAutoHideAsync();
@@ -26,6 +27,13 @@ export default function RootLayout() {
   const { success, error } = useMigracoes(db);
   const [travado, setTravado] = useState(false);
   const [verificouTrava, setVerificouTrava] = useState(false);
+  const carregarLicenca = useLicenca((e) => e.carregar);
+
+  // O plano vem de um arquivo local, nao do banco — ler cedo evita a tela
+  // aparecer por um instante com os recursos pagos bloqueados para quem pagou.
+  useEffect(() => {
+    carregarLicenca();
+  }, [carregarLicenca]);
 
   useEffect(() => {
     if (success || error) {
@@ -120,6 +128,7 @@ export default function RootLayout() {
             <Stack.Screen name="acordo/novo" options={{ title: 'Parcelar dívida' }} />
             <Stack.Screen name="acordo/[id]" options={{ title: 'Acordo' }} />
             <Stack.Screen name="exportar" options={{ title: 'Exportar' }} />
+            <Stack.Screen name="plano" options={{ title: 'Plano' }} />
             <Stack.Screen name="backup" options={{ title: 'Backup' }} />
             <Stack.Screen name="seguranca" options={{ title: 'Trava do app' }} />
           </Stack>

@@ -8,6 +8,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { montarMensagem } from '@/cobranca';
 import { db } from '@/db';
 import { useConfig } from '@/hooks/useConfig';
+import { useLicenca } from '@/licenca';
 
 const CLIENTE_EXEMPLO = {
   id: 'exemplo',
@@ -19,6 +20,7 @@ const CLIENTE_EXEMPLO = {
 export default function Ajustes() {
   const tema = useTema();
   const config = useConfig();
+  const plano = useLicenca((e) => e.plano);
 
   const [nomeDaLoja, setNomeDaLoja] = useState(config.nomeDaLoja);
   const [telefone, setTelefone] = useState(config.telefoneDaLoja);
@@ -154,6 +156,25 @@ export default function Ajustes() {
           titulo="Trava do app"
           variante="secundario"
           aoTocar={() => router.push('/seguranca')}
+        />
+      </View>
+
+      <View style={{ gap: tema.espaco.md }}>
+        <Text
+          style={{
+            fontSize: tema.fonte.pequeno,
+            fontWeight: tema.peso.forte,
+            color: tema.cores.textoSecundario,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+          }}>
+          Plano
+        </Text>
+
+        <Botao
+          titulo={plano === 'pago' ? 'Plano completo ativo' : 'Ver o plano completo'}
+          variante="secundario"
+          aoTocar={() => router.push('/plano')}
         />
       </View>
 

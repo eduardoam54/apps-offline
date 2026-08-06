@@ -1,16 +1,18 @@
-import { combinaComBusca } from '@repo/core';
+import { avisoDeLimite, combinaComBusca, LIMITE_CLIENTES_GRATIS, vagasRestantes } from '@repo/core';
 import { consultaClientesComSaldo, type ClienteComSaldo } from '@repo/core/db';
 import { Botao, EstadoVazio, Separador, useTema } from '@repo/ui';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, TextInput, View } from 'react-native';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 
 import { LinhaCliente } from '@/components/LinhaCliente';
 import { db } from '@/db';
+import { useLicenca } from '@/licenca';
 
 export default function Clientes() {
   const tema = useTema();
+  const plano = useLicenca((e) => e.plano);
   const [busca, setBusca] = useState('');
   const [soDevendo, setSoDevendo] = useState(false);
 
@@ -27,6 +29,9 @@ export default function Clientes() {
   }, [todos, busca, soDevendo]);
 
   const devendo = todos.filter((c) => c.saldoCentavos > 0).length;
+
+  const aviso = avisoDeLimite(plano, todos.length);
+  const vagas = vagasRestantes(plano, todos.length);
 
   return (
     <View style={{ flex: 1 }}>
@@ -103,10 +108,41 @@ export default function Clientes() {
       <View
         style={{
           padding: tema.espaco.lg,
+          gap: tema.espaco.md,
           backgroundColor: tema.cores.fundo,
           borderTopWidth: 1,
           borderTopColor: tema.cores.borda,
         }}>
+        {/* O aviso fica colado no botao que ele afeta, e aparece antes de encher:
+            descobrir o limite so na hora de cadastrar, com o cliente esperando,
+            transforma uma cobranca legitima em irritacao. */}
+        {aviso !== 'nenhum' && (
+          <Pressable
+            onPress={() => router.push('/plano')}
+            style={{
+              backgroundColor: tema.cores.alertaFundo,
+              borderRadius: tema.raio.md,
+              padding: tema.espaco.md,
+              gap: 2,
+            }}>
+            <Text
+              style={{
+                fontSize: tema.fonte.pequeno,
+                fontWeight: tema.peso.forte,
+                color: tema.cores.alerta,
+              }}>
+              {/* Sem "40 de 15": quem restaurou um backup grande no plano
+                  gratuito ficaria com um contador que parece defeito. */}
+              {aviso === 'cheio'
+                ? `Plano gratuito cheio (${LIMITE_CLIENTES_GRATIS} clientes)`
+                : `Cabem mais ${vagas} ${vagas === 1 ? 'cliente' : 'clientes'} no plano gratuito`}
+            </Text>
+            <Text style={{ fontSize: tema.fonte.micro, color: tema.cores.textoSecundario }}>
+              Toque para ver o plano completo.
+            </Text>
+          </Pressable>
+        )}
+
         <Botao titulo="Novo cliente" principal aoTocar={() => router.push('/cliente/novo')} />
       </View>
     </View>

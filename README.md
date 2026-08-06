@@ -12,7 +12,7 @@ convenções de código estão no `CLAUDE.md`.
 
 | Pasta | App | Público | Status |
 |---|---|---|---|
-| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fases 0–6 concluídas** — MVP completo, falta monetizar e publicar |
+| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fases 0–7 concluídas** — MVP e paywall prontos; falta publicar e ligar a compra |
 | `apps/orcamento` | Orçamento / ordem de serviço em PDF | Autônomo (eletricista, encanador, montador) | Planejado |
 | `apps/veiculo` | Manutenção e abastecimento de veículo | Motorista de app, dono de frota pequena | Planejado |
 
@@ -71,11 +71,16 @@ assinatura barata onde há uso recorrente e o app mexe com dinheiro entrando.
 O paywall **nunca** bloqueia o uso básico. Ele fica em:
 
 - exportar (PDF/CSV)
-- backup e restauração
 - múltiplos perfis (mais de um veículo, mais de uma empresa)
 - remover o limite de quantidade
 
 O usuário precisa conseguir usar o app de verdade antes de decidir pagar.
+
+**Backup e restauração saíram do plano pago** na implementação do `fiado`, e a
+decisão vale para os três apps. Backup é a condição para o usuário confiar o
+dado dele a um app sem nuvem — cobrar por isso derruba a adoção antes de
+qualquer conversão, e travar a restauração seguraria o histórico dele como
+refém. O raciocínio completo está em `apps/fiado/README.md`.
 
 ---
 

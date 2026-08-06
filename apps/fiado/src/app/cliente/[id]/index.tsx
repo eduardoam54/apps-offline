@@ -1,4 +1,4 @@
-import { formatarBRL, formatarDataRelativa } from '@repo/core';
+import { formatarBRL, formatarDataRelativa, recursoLiberado } from '@repo/core';
 import {
   arquivarCliente,
   consultaAcordosDoCliente,
@@ -19,10 +19,12 @@ import { cobrarNoWhatsApp } from '@/cobranca';
 import { db } from '@/db';
 import { exportarExtratoDoCliente } from '@/exportar';
 import { useConfig } from '@/hooks/useConfig';
+import { useLicenca } from '@/licenca';
 
 export default function DetalheCliente() {
   const tema = useTema();
   const config = useConfig();
+  const plano = useLicenca((e) => e.plano);
   const { id } = useLocalSearchParams<{ id: string }>();
   const [gerandoPdf, setGerandoPdf] = useState(false);
 
@@ -63,6 +65,11 @@ export default function DetalheCliente() {
    * aperta o botao, com o cliente do lado.
    */
   async function mandarExtrato() {
+    if (!recursoLiberado('exportar', plano)) {
+      router.push('/plano');
+      return;
+    }
+
     setGerandoPdf(true);
     try {
       const compartilhou = await exportarExtratoDoCliente(

@@ -1,6 +1,8 @@
 # Fiado — Caderneta de fiado digital
 
-**Status:** planejado · **Ordem:** 1º app a ser desenvolvido
+**Status:** fases 0–7 concluídas · **Ordem:** 1º app a ser desenvolvido
+
+O MVP está completo e o paywall está no lugar. Falta publicar e ligar a compra.
 
 Substitui o caderno de papel do comerciante que vende fiado.
 
@@ -46,13 +48,31 @@ dinheiro.
 
 ## Monetização
 
-Gratuito até ~15 clientes. Acima disso, assinatura de aproximadamente R$ 9,90/mês
+Gratuito até 15 clientes. Acima disso, assinatura de aproximadamente R$ 9,90/mês
 ou desbloqueio vitalício.
-
-Também no plano pago: backup/restauração e exportar o histórico.
 
 O limite é de **clientes**, não de lançamentos — quem já usa o app de verdade não
 pode ser interrompido no meio do expediente.
+
+| Recurso | Gratuito |
+|---|---|
+| Lançar, receber, saldo, extrato, cobrar no WhatsApp | sim, sem limite |
+| Backup, restauração e cópias automáticas | sim |
+| Cadastrar cliente | até 15 |
+| Exportar PDF e planilha | não |
+
+**Backup ficou de fora do plano pago**, ao contrário do previsto no início. O
+comerciante só larga o caderno de papel quando acredita que não vai perder a
+caderneta; cobrar por "não perder seus dados" envenena justamente a confiança
+que faz ele adotar o app. E travar a restauração seria pior ainda — seguraria o
+histórico dele como refém no dia em que ele trocasse de celular.
+
+Quem passa do limite (restaurou um backup grande, ou deixou a assinatura vencer)
+**não perde nada**: continua lendo, editando, lançando e recebendo. Só não
+cadastra cliente novo. Arquivar um cliente que não compra mais abre vaga.
+
+A regra vive em `packages/core/src/plano.ts`, testada. A compra em si ainda não
+está ligada — ver `src/loja.ts`.
 
 ## Risco conhecido
 

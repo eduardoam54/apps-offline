@@ -1,4 +1,6 @@
-import { Botao, useTema } from '@repo/ui';
+import { recursoLiberado } from '@repo/core';
+import { Botao, Cartao, useTema } from '@repo/ui';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
@@ -8,6 +10,7 @@ import {
   exportarRelatorioDeDevedores,
 } from '@/exportar';
 import { useConfig } from '@/hooks/useConfig';
+import { useLicenca } from '@/licenca';
 
 /**
  * Tela de exportacao.
@@ -20,11 +23,25 @@ import { useConfig } from '@/hooks/useConfig';
 export default function TelaExportar() {
   const tema = useTema();
   const config = useConfig();
+  const plano = useLicenca((e) => e.plano);
   const [ocupado, setOcupado] = useState<string | null>(null);
 
+  const liberado = recursoLiberado('exportar', plano);
   const loja = { nome: config.nomeDaLoja, telefone: config.telefoneDaLoja || null };
 
+  /**
+   * Bloqueado leva para o plano em vez de sumir da tela.
+   *
+   * Esconder o recurso deixaria a tela mais limpa e o comerciante sem saber o
+   * que ele ganharia pagando. Ele precisa ver o que existe — e chegar la sem
+   * susto, porque nada aqui e cobrado sem antes ser explicado.
+   */
   async function exportar(qual: string, acao: () => Promise<boolean>) {
+    if (!liberado) {
+      router.push('/plano');
+      return;
+    }
+
     setOcupado(qual);
     try {
       const compartilhou = await acao();
@@ -43,6 +60,28 @@ export default function TelaExportar() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: tema.espaco.lg, gap: tema.espaco.xl }}>
+      {!liberado && (
+        <Cartao estilo={{ backgroundColor: tema.cores.primariaClara, gap: tema.espaco.xs }}>
+          <Text
+            style={{
+              fontSize: tema.fonte.corpo,
+              fontWeight: tema.peso.forte,
+              color: tema.cores.primariaEscura,
+            }}>
+            Exportar faz parte do plano completo
+          </Text>
+          <Text
+            style={{
+              fontSize: tema.fonte.pequeno,
+              color: tema.cores.textoSecundario,
+              lineHeight: 22,
+            }}>
+            Backup e restauração continuam de graça — exportar é para levar o histórico
+            para fora do app, em documento ou planilha.
+          </Text>
+        </Cartao>
+      )}
+
       <View style={{ gap: tema.espaco.md }}>
         <Rotulo texto="Documento em PDF" />
         <Texto>

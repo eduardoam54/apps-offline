@@ -1,14 +1,26 @@
-import { parseValorBR } from '@repo/core';
-import { criarCliente, existeClienteComNome } from '@repo/core/db';
-import { Botao, CampoTexto, useTema } from '@repo/ui';
+import { LIMITE_CLIENTES_GRATIS, parseValorBR, podeCadastrarCliente } from '@repo/core';
+import {
+  consultaClientesComSaldo,
+  criarCliente,
+  existeClienteComNome,
+  type ClienteComSaldo,
+} from '@repo/core/db';
+import { Botao, CampoTexto, Cartao, useTema } from '@repo/ui';
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { db } from '@/db';
+import { useLicenca } from '@/licenca';
 
 export default function NovoCliente() {
   const tema = useTema();
+  const plano = useLicenca((e) => e.plano);
+
+  const { data } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const ativos = ((data ?? []) as ClienteComSaldo[]).length;
+  const cabeMais = podeCadastrarCliente(plano, ativos);
 
   const [nome, setNome] = useState('');
   const [apelido, setApelido] = useState('');
@@ -54,6 +66,47 @@ export default function NovoCliente() {
       Alert.alert('Não deu para salvar', String(erro));
       setSalvando(false);
     }
+  }
+
+  // O aviso vem ANTES do formulario, nunca depois. Deixar o comerciante digitar
+  // nome, telefone e limite para so entao dizer que nao cabe seria desrespeito
+  // com quem esta com o cliente esperando na frente.
+  if (!cabeMais) {
+    return (
+      <ScrollView contentContainerStyle={{ padding: tema.espaco.lg, gap: tema.espaco.xl }}>
+        <Cartao estilo={{ padding: tema.espaco.xl, gap: tema.espaco.md }}>
+          <Text
+            style={{
+              fontSize: tema.fonte.subtitulo,
+              fontWeight: tema.peso.destaque,
+              color: tema.cores.texto,
+            }}>
+            O plano gratuito vai até {LIMITE_CLIENTES_GRATIS} clientes
+          </Text>
+          <Text
+            style={{
+              fontSize: tema.fonte.corpo,
+              color: tema.cores.textoSecundario,
+              lineHeight: 24,
+            }}>
+            Você já tem {ativos}. Tudo que está anotado continua funcionando normalmente —
+            lançar, receber, cobrar e fazer backup não têm limite.
+          </Text>
+        </Cartao>
+
+        <Botao titulo="Ver o plano completo" principal aoTocar={() => router.replace('/plano')} />
+
+        <Text
+          style={{
+            fontSize: tema.fonte.pequeno,
+            color: tema.cores.textoFraco,
+            lineHeight: 22,
+          }}>
+          Se preferir, arquive um cliente que não compra mais: arquivar abre vaga e o
+          histórico dele fica guardado.
+        </Text>
+      </ScrollView>
+    );
   }
 
   return (
