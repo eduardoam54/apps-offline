@@ -3,16 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "description": "Monorepo de apps mobile offline-first (Android/iOS)",
-  "//workspaces": "Listados um a um de proposito: apps/orcamento, apps/veiculo e packages/docs ainda sao so README e um glob quebraria o npm install. Adicionar aqui conforme cada um ganhar package.json.",
+  "//workspaces": "Listados um a um de proposito: apps/orcamento e apps/veiculo ainda sao so README e um glob quebraria o npm install. Adicionar aqui conforme cada um ganhar package.json.",
   "workspaces": [
     "apps/fiado",
     "packages/core",
+    "packages/docs",
     "packages/ui"
   ],
   "scripts": {
     "fiado": "npm run start --workspace fiado",
     "fiado:android": "npm run android --workspace fiado",
-    "test": "npm run test --workspace @repo/core",
+    "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:generate": "npm run db:generate --workspace @repo/core"
   },

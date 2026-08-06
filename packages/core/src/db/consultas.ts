@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 
 import type { Centavos } from '../money';
 import { cliente, pagamento, venda } from './schema';
@@ -52,6 +52,12 @@ const expressaoUltimoPagamento = sql<string | null>`(
   where p.cliente_id = cliente.id and p.deletado_em is null
 )`;
 
+/** Quando este cliente entrou numa cobranca pela ultima vez. */
+const expressaoUltimaCobranca = sql<string | null>`(
+  select max(v.cobrado_em) from venda v
+  where v.cliente_id = cliente.id and v.deletado_em is null
+)`;
+
 export type ClienteComSaldo = {
   id: string;
   nome: string;
@@ -62,6 +68,7 @@ export type ClienteComSaldo = {
   saldoCentavos: Centavos;
   ultimaCompra: string | null;
   ultimoPagamento: string | null;
+  ultimaCobranca: string | null;
 };
 
 /**
@@ -82,6 +89,7 @@ export function consultaClientesComSaldo(db: BancoSQLite) {
       saldoCentavos: expressaoSaldo,
       ultimaCompra: expressaoUltimaCompra,
       ultimoPagamento: expressaoUltimoPagamento,
+      ultimaCobranca: expressaoUltimaCobranca,
     })
     .from(cliente)
     .where(isNull(cliente.deletadoEm))
@@ -101,6 +109,26 @@ export function consultaTotalAReceber(db: BancoSQLite) {
     .select({ total: sql<number>`coalesce(sum(${expressaoSaldo}), 0)` })
     .from(cliente)
     .where(isNull(cliente.deletadoEm));
+}
+
+/**
+ * Quanto entrou de dinheiro num periodo. Alimenta o "recebido no mes".
+ *
+ * Conta pagamento de qualquer cliente, inclusive arquivado: o dinheiro entrou de
+ * verdade no caixa, e some-lo do historico so porque o cliente saiu da lista
+ * daria um numero que nao bate com a realidade.
+ */
+export function consultaRecebidoNoPeriodo(db: BancoSQLite, inicio: string, fim: string) {
+  return db
+    .select({ total: sql<number>`coalesce(sum(${pagamento.valorCentavos}), 0)` })
+    .from(pagamento)
+    .where(
+      and(
+        isNull(pagamento.deletadoEm),
+        gte(pagamento.data, inicio),
+        lte(pagamento.data, fim)
+      )
+    );
 }
 
 export function consultaVendasDoCliente(db: BancoSQLite, clienteId: string) {

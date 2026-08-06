@@ -6,6 +6,7 @@ export * from './client';
 export * from './consultas';
 export * from './migrate';
 export * from './repos/cliente';
+export * from './repos/config';
 export * from './repos/pagamento';
 export * from './repos/venda';
 export * from './schema';

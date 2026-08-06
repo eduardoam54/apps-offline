@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   adicionarDias,
   adicionarMeses,
+  diaDoInstante,
   diasEntre,
   ehDataISOValida,
   formatarDataBR,
@@ -17,6 +18,21 @@ describe('paraDataISO', () => {
     // usassemos toISOString() ela cairia no dia errado do extrato.
     const noite = new Date(2026, 7, 5, 21, 30);
     expect(paraDataISO(noite)).toBe('2026-08-05');
+  });
+});
+
+describe('diaDoInstante', () => {
+  it('converte instante UTC para o dia civil local', () => {
+    // 5/8 as 21h no Brasil (UTC-3) e 6/8 as 00h em UTC. Cortar a string daria
+    // o dia errado e o app ofereceria cobrar de novo quem ja foi cobrado.
+    const instante = new Date(2026, 7, 5, 21, 30).toISOString();
+    expect(instante.slice(0, 10)).not.toBe('2026-08-05'); // o jeito errado
+    expect(diaDoInstante(instante)).toBe('2026-08-05'); // o jeito certo
+  });
+
+  it('funciona para instante no meio do dia', () => {
+    const instante = new Date(2026, 7, 5, 14, 0).toISOString();
+    expect(diaDoInstante(instante)).toBe('2026-08-05');
   });
 });
 

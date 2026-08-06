@@ -13,6 +13,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@repo/core": "*",
+    "@repo/docs": "*",
     "@repo/ui": "*",
     "drizzle-orm": "^0.45.2",
     "expo": "~57.0.10",

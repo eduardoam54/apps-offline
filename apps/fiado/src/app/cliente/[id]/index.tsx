@@ -13,10 +13,13 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { cobrarNoWhatsApp } from '@/cobranca';
 import { db } from '@/db';
+import { useConfig } from '@/hooks/useConfig';
 
 export default function DetalheCliente() {
   const tema = useTema();
+  const config = useConfig();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
@@ -126,21 +129,39 @@ export default function DetalheCliente() {
           )}
         </Cartao>
 
-        <View style={{ flexDirection: 'row', gap: tema.espaco.md }}>
-          <Botao
-            titulo="Lançar fiado"
-            principal
-            aoTocar={() => router.push(`/venda/nova?clienteId=${id}`)}
-            estilo={{ flex: 1 }}
-          />
-          <Botao
-            titulo="Receber"
-            principal
-            variante="secundario"
-            desabilitado={saldo <= 0}
-            aoTocar={() => router.push(`/pagamento/novo?clienteId=${id}`)}
-            estilo={{ flex: 1 }}
-          />
+        <View style={{ gap: tema.espaco.md }}>
+          <View style={{ flexDirection: 'row', gap: tema.espaco.md }}>
+            <Botao
+              titulo="Lançar fiado"
+              principal
+              aoTocar={() => router.push(`/venda/nova?clienteId=${id}`)}
+              estilo={{ flex: 1 }}
+            />
+            <Botao
+              titulo="Receber"
+              principal
+              variante="secundario"
+              desabilitado={saldo <= 0}
+              aoTocar={() => router.push(`/pagamento/novo?clienteId=${id}`)}
+              estilo={{ flex: 1 }}
+            />
+          </View>
+
+          {deve && (
+            <Botao
+              titulo={
+                cliente.telefone == null ? 'Cobrar (sem telefone)' : 'Cobrar no WhatsApp'
+              }
+              variante="secundario"
+              desabilitado={cliente.telefone == null}
+              aoTocar={() =>
+                cobrarNoWhatsApp(
+                  { id, nome: cliente.nome, telefone: cliente.telefone, saldoCentavos: saldo },
+                  { nomeDaLoja: config.nomeDaLoja, template: config.templateCobranca }
+                )
+              }
+            />
+          )}
         </View>
 
         <View style={{ gap: tema.espaco.sm }}>

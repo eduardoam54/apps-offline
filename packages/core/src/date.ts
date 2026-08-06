@@ -47,6 +47,18 @@ export function deDataISO(data: DataISO): Date {
   return new Date(ano, mes - 1, dia);
 }
 
+/**
+ * Dia civil LOCAL de um instante ISO.
+ *
+ * Nao substitua isto por `instante.slice(0, 10)`. Campos de auditoria sao
+ * gravados com `toISOString()`, que e UTC: uma cobranca feita as 21h de 5/8 no
+ * Brasil fica salva como `2026-08-06T00:...Z`, e o corte simples diria que
+ * aconteceu no dia 6. O app entao ofereceria cobrar de novo alguem ja cobrado.
+ */
+export function diaDoInstante(instante: InstanteISO): DataISO {
+  return paraDataISO(new Date(instante));
+}
+
 export function ehDataISOValida(data: unknown): data is DataISO {
   if (typeof data !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(data)) return false;
   const d = deDataISO(data);
