@@ -1,7 +1,11 @@
 import { avisoDeLimite, combinaComBusca, LIMITE_CLIENTES_GRATIS, vagasRestantes } from '@repo/core';
-import { consultaClientesComSaldo, type ClienteComSaldo } from '@repo/core/db';
+import {
+  consultaClientesComSaldo,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
+  type ClienteComSaldo,
+} from '@repo/core/db';
 import { Botao, EstadoVazio, Separador, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
@@ -16,7 +20,7 @@ export default function Clientes() {
   const [busca, setBusca] = useState('');
   const [soDevendo, setSoDevendo] = useState(false);
 
-  const { data } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const { data } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
   const todos = (data ?? []) as ClienteComSaldo[];
 
   // Filtragem em memoria, e nao em SQL: o LIKE do SQLite ignora acentuacao e

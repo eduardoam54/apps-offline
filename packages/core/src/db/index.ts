@@ -14,3 +14,4 @@ export * from './repos/produto';
 export * from './repos/venda';
 export * from './schema';
 export * from './tipos';
+export * from './viva';

@@ -4,11 +4,12 @@ import {
   consultaParcelasVencidas,
   consultaRecebidoNoPeriodo,
   consultaTotalAReceber,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
   type ClienteComSaldo,
   type ParcelaVencida,
 } from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, Separador, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, Text, View } from 'react-native';
@@ -23,10 +24,11 @@ export default function Inicio() {
   const tema = useTema();
   const mes = useMemo(() => limitesDoMes(hoje()), []);
 
-  const { data: totais } = useLiveQuery(consultaTotalAReceber(db), []);
-  const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
-  const { data: recebido } = useLiveQuery(
+  const { data: totais } = useConsultaViva(consultaTotalAReceber(db), TABELAS_DO_SALDO, []);
+  const { data: clientes } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
+  const { data: recebido } = useConsultaViva(
     consultaRecebidoNoPeriodo(db, mes.inicio, mes.fim),
+    ['pagamento'],
     [mes.inicio, mes.fim]
   );
 
@@ -34,7 +36,13 @@ export default function Inicio() {
   const recebidoNoMes = recebido?.[0]?.total ?? 0;
   const lista = (clientes ?? []) as ClienteComSaldo[];
 
-  const { data: vencidas } = useLiveQuery(consultaParcelasVencidas(db, hoje()), []);
+  // Uma parcela e quitada gravando um pagamento e marcando a parcela, e o nome
+  // do cliente vem por SQL cru — as tres tabelas precisam estar na lista.
+  const { data: vencidas } = useConsultaViva(
+    consultaParcelasVencidas(db, hoje()),
+    ['acordo_parcela', 'acordo', 'cliente'],
+    []
+  );
 
   const devedores = useMemo(() => lista.filter((c) => c.saldoCentavos > 0), [lista]);
   const alertas = useMemo(

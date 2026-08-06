@@ -6,11 +6,12 @@ import {
   consultaPagamentosDoCliente,
   consultaVendasDoCliente,
   montarExtrato,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
   type Acordo,
   type ClienteComSaldo,
 } from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, LinhaLista, Separador, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
@@ -28,10 +29,20 @@ export default function DetalheCliente() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [gerandoPdf, setGerandoPdf] = useState(false);
 
-  const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
-  const { data: vendas } = useLiveQuery(consultaVendasDoCliente(db, id), [id]);
-  const { data: pagamentos } = useLiveQuery(consultaPagamentosDoCliente(db, id), [id]);
-  const { data: acordos } = useLiveQuery(consultaAcordosDoCliente(db, id), [id]);
+  const { data: clientes } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
+  const { data: vendas } = useConsultaViva(consultaVendasDoCliente(db, id), ['venda'], [id]);
+  const { data: pagamentos } = useConsultaViva(
+    consultaPagamentosDoCliente(db, id),
+    ['pagamento'],
+    [id]
+  );
+  // Quitar a ultima parcela muda o status do acordo, e isso acontece gravando
+  // um pagamento — por isso as duas tabelas.
+  const { data: acordos } = useConsultaViva(
+    consultaAcordosDoCliente(db, id),
+    ['acordo', 'acordo_parcela'],
+    [id]
+  );
 
   const acordoAtivo = ((acordos ?? []) as Acordo[]).find((a) => a.status === 'ativo') ?? null;
 

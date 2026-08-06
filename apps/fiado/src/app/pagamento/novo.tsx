@@ -5,12 +5,13 @@ import {
   proximaParcela,
   quitarParcela,
   receberPagamento,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
   type AcordoParcela,
   type ClienteComSaldo,
   type FormaPagamento,
 } from '@repo/core/db';
 import { Botao, CampoValor, Cartao, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -29,7 +30,7 @@ export default function NovoPagamento() {
   const tema = useTema();
   const { clienteId } = useLocalSearchParams<{ clienteId: string }>();
 
-  const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const { data: clientes } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
   const cliente = ((clientes ?? []) as ClienteComSaldo[]).find((c) => c.id === clienteId);
   const saldo = cliente?.saldoCentavos ?? 0;
 

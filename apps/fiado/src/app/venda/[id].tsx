@@ -3,11 +3,11 @@ import {
   buscarVenda,
   consultaItensDaVenda,
   excluirVenda,
+  useConsultaViva,
   type Venda,
   type VendaItem,
 } from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, Separador, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
@@ -21,7 +21,11 @@ export default function DetalheVenda() {
   const [venda, setVenda] = useState<Venda | null>(null);
   const [carregado, setCarregado] = useState(false);
 
-  const { data: itensBrutos } = useLiveQuery(consultaItensDaVenda(db, id), [id]);
+  const { data: itensBrutos } = useConsultaViva(
+    consultaItensDaVenda(db, id),
+    ['venda_item'],
+    [id]
+  );
   const itens = (itensBrutos ?? []) as VendaItem[];
 
   useEffect(() => {

@@ -3,10 +3,11 @@ import {
   consultaClientesComSaldo,
   criarCliente,
   existeClienteComNome,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
   type ClienteComSaldo,
 } from '@repo/core/db';
 import { Botao, CampoTexto, Cartao, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
@@ -18,7 +19,7 @@ export default function NovoCliente() {
   const tema = useTema();
   const plano = useLicenca((e) => e.plano);
 
-  const { data } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const { data } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
   const ativos = ((data ?? []) as ClienteComSaldo[]).length;
   const cabeMais = podeCadastrarCliente(plano, ativos);
 

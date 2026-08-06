@@ -10,9 +10,9 @@ import * as schema from './schema';
  * monorepo e cada um tem o seu arquivo isolado. Nao existe dado trafegando entre
  * apps — so o codigo de acesso e comum.
  *
- * `enableChangeListener` e obrigatorio para o `useLiveQuery` do Drizzle: e ele
- * que faz a lista de clientes se atualizar sozinha quando uma venda e lancada,
- * sem precisar recarregar a tela na mao.
+ * `enableChangeListener` e obrigatorio para o `useConsultaViva` (ver viva.ts):
+ * e ele que emite o evento de tabela alterada que faz a lista de clientes se
+ * atualizar sozinha quando uma venda e lancada, sem recarregar a tela na mao.
  */
 export function abrirBanco(nomeArquivo: string) {
   const sqlite = openDatabaseSync(nomeArquivo, { enableChangeListener: true });

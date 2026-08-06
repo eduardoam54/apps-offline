@@ -1,6 +1,5 @@
-import { CHAVES, consultaConfig, mapearConfig } from '@repo/core/db';
+import { CHAVES, consultaConfig, mapearConfig, useConsultaViva } from '@repo/core/db';
 import { TEMPLATE_COBRANCA_PADRAO } from '@repo/docs';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useMemo } from 'react';
 
 import { db } from '@/db';
@@ -20,7 +19,7 @@ export type ConfigDaLoja = {
  * mecanismo de invalidacao.
  */
 export function useConfig(): ConfigDaLoja {
-  const { data } = useLiveQuery(consultaConfig(db), []);
+  const { data } = useConsultaViva(consultaConfig(db), ['config'], []);
 
   return useMemo(() => {
     const mapa = mapearConfig((data ?? []) as { chave: string; valor: string }[]);

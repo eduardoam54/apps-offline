@@ -13,11 +13,12 @@ import {
   consultaClientesComSaldo,
   consultaProdutosFrequentes,
   lancarVenda,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
   type ClienteComSaldo,
   type ProdutoFrequente,
 } from '@repo/core/db';
 import { Botao, CampoTexto, CampoValor, Cartao, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -59,8 +60,12 @@ export default function NovaVenda() {
   const [novaQuantidade, setNovaQuantidade] = useState('1');
   const [novoValor, setNovoValor] = useState('');
 
-  const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
-  const { data: frequentes } = useLiveQuery(consultaProdutosFrequentes(db), []);
+  const { data: clientes } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
+  const { data: frequentes } = useConsultaViva(
+    consultaProdutosFrequentes(db),
+    ['produto_frequente'],
+    []
+  );
 
   const cliente = ((clientes ?? []) as ClienteComSaldo[]).find((c) => c.id === clienteId);
   const sugestoes = (frequentes ?? []) as ProdutoFrequente[];

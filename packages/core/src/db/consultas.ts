@@ -8,8 +8,8 @@ import type { BancoSQLite } from './tipos';
  * Consultas de leitura.
  *
  * Devolvem o CONSTRUTOR da query, nao o resultado, para poderem ser passadas ao
- * `useLiveQuery` do Drizzle — e ele que faz a tela se atualizar sozinha quando
- * uma venda e lancada em outro lugar do app.
+ * `useConsultaViva` (ver viva.ts) — e ele que faz a tela se atualizar sozinha
+ * quando uma venda e lancada em outro lugar do app.
  */
 
 /**
@@ -57,6 +57,16 @@ const expressaoUltimaCobranca = sql<string | null>`(
   select max(v.cobrado_em) from venda v
   where v.cliente_id = cliente.id and v.deletado_em is null
 )`;
+
+/**
+ * Tabelas lidas por toda consulta que envolve saldo.
+ *
+ * Existe porque `venda` e `pagamento` aparecem apenas dentro do `sql` cru das
+ * subconsultas acima — nenhuma ferramenta consegue descobrir sozinha que a
+ * consulta depende delas. Passe esta constante ao `useConsultaViva`, senao a
+ * tela mostra saldo velho depois de um lancamento.
+ */
+export const TABELAS_DO_SALDO = ['cliente', 'venda', 'pagamento'] as const;
 
 export type ClienteComSaldo = {
   id: string;

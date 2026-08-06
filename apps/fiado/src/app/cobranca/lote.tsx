@@ -1,7 +1,11 @@
 import { diaDoInstante, formatarBRL, hoje } from '@repo/core';
-import { consultaClientesComSaldo, type ClienteComSaldo } from '@repo/core/db';
+import {
+  consultaClientesComSaldo,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
+  type ClienteComSaldo,
+} from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, Separador, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { FlatList, Text, View } from 'react-native';
@@ -24,7 +28,7 @@ export default function CobrancaEmLote() {
   const tema = useTema();
   const config = useConfig();
 
-  const { data } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const { data } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
   const todos = (data ?? []) as ClienteComSaldo[];
 
   const devedores = useMemo(() => todos.filter((c) => c.saldoCentavos > 0), [todos]);

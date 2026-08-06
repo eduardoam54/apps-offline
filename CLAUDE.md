@@ -57,6 +57,13 @@ inadimplente". Na duvida, se a resposta e especifica de um app, ela nao vai para
   `v.cliente_id = v.id`, nunca verdadeira, e o saldo da zero em tudo. O `toSQL()`
   mostra a versao qualificada e esconde o problema — so teste contra banco real
   pega isso.
+- **`useLiveQuery` do Drizzle nao serve para saldo — use `useConsultaViva`.** O
+  hook do Drizzle escuta UMA tabela, a do `FROM`. Como o saldo sai de subconsulta
+  correlacionada, `venda` e `pagamento` existem so como texto SQL e a consulta
+  declara depender apenas de `cliente`: lancar um fiado nao invalidava nada e o
+  "Total a receber" ficava em R$ 0,00 ate a tela ser remontada. O
+  `useConsultaViva` (`packages/core/src/db/viva.ts`) recebe a lista de tabelas
+  explicitamente. Consulta nova que toque em saldo passa `TABELAS_DO_SALDO`.
 - **Licenca nao mora na tabela `config`.** A `config` viaja dentro do backup, de
   proposito. Se o plano morasse la, restaurar o backup de um conhecido daria o
   plano pago de graca — e, pior, restaurar um backup antigo TIRARIA o plano de
@@ -91,6 +98,23 @@ npm run typecheck     tsc em todos os workspaces
 npm run db:generate   gera migracao apos mudar o schema
 npm run fiado:android sobe o app no emulador
 ```
+
+### Build Android — o que ja mordeu
+
+`apps/fiado/android` e gerado pelo prebuild e NAO e versionado. Todo ajuste feito
+la dentro se perde no proximo `expo prebuild --clean`.
+
+- **O heap padrao do Gradle nao da conta.** O template vem com
+  `org.gradle.jvmargs=-Xmx2048m` e o D8 morre com `OutOfMemoryError` no merge das
+  dex, num erro que parece problema de codigo e nao e. Suba para `-Xmx3584m` em
+  `android/gradle.properties` — e refaca isso depois de cada prebuild.
+- **Desligue o emulador antes de compilar.** Numa maquina de 16 GB o emulador
+  sozinho leva a memoria livre para ~1 GB e o build falha por falta dela.
+- **`edgeToEdgeEnabled` saiu do app.json.** O Android 16 torna edge-to-edge
+  obrigatorio e o plugin agora avisa que a chave nao existe mais.
+- **Emulador novo pode subir em modo aviao e sem Wi-Fi.** Ai o bundle nao carrega
+  e a tela vermelha diz so "Unable to load script". Conferir com
+  `adb shell settings get global airplane_mode_on` e `adb shell svc wifi enable`.
 
 Depois de qualquer mudanca em `packages/core/src/db/schema.ts`, rode
 `npm run db:generate` e versione a migracao gerada.

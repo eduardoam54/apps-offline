@@ -1,7 +1,11 @@
 import { LIMITE_CLIENTES_GRATIS, vagasRestantes } from '@repo/core';
-import { consultaClientesComSaldo, type ClienteComSaldo } from '@repo/core/db';
+import {
+  consultaClientesComSaldo,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
+  type ClienteComSaldo,
+} from '@repo/core/db';
 import { Botao, Cartao, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
@@ -25,7 +29,7 @@ export default function TelaPlano() {
   const tema = useTema();
   const { plano, definirPlano } = useLicenca();
 
-  const { data } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const { data } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
   const ativos = ((data ?? []) as ClienteComSaldo[]).length;
   const vagas = vagasRestantes(plano, ativos);
 

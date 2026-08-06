@@ -11,11 +11,12 @@ import {
   calcularVencimento,
   consultaClientesComSaldo,
   criarAcordo,
+  TABELAS_DO_SALDO,
+  useConsultaViva,
   type ClienteComSaldo,
   type Periodicidade,
 } from '@repo/core/db';
 import { Botao, CampoValor, Cartao, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
@@ -48,7 +49,7 @@ export default function NovoAcordo() {
   const tema = useTema();
   const { clienteId } = useLocalSearchParams<{ clienteId: string }>();
 
-  const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
+  const { data: clientes } = useConsultaViva(consultaClientesComSaldo(db), TABELAS_DO_SALDO, []);
   const cliente = ((clientes ?? []) as ClienteComSaldo[]).find((c) => c.id === clienteId);
   const saldo = cliente?.saldoCentavos ?? 0;
 

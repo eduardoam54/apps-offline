@@ -3,11 +3,11 @@ import {
   consultaParcelasDoAcordo,
   quebrarAcordo,
   quitarParcela,
+  useConsultaViva,
   type Acordo,
   type AcordoParcela,
 } from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, Separador, useTema } from '@repo/ui';
-import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { acordo as tabelaAcordo } from '@repo/core/db';
 import { eq } from 'drizzle-orm';
 import * as Haptics from 'expo-haptics';
@@ -20,11 +20,19 @@ export default function DetalheAcordo() {
   const tema = useTema();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: acordos } = useLiveQuery(
+  // Quitar a ultima parcela marca a parcela E fecha o acordo, entao as duas
+  // consultas escutam as duas tabelas: sem isso o cabecalho continuaria dizendo
+  // "ativo" com todas as parcelas ja pagas na lista logo abaixo.
+  const { data: acordos } = useConsultaViva(
     db.select().from(tabelaAcordo).where(eq(tabelaAcordo.id, id)),
+    ['acordo', 'acordo_parcela'],
     [id]
   );
-  const { data: parcelasBrutas } = useLiveQuery(consultaParcelasDoAcordo(db, id), [id]);
+  const { data: parcelasBrutas } = useConsultaViva(
+    consultaParcelasDoAcordo(db, id),
+    ['acordo_parcela', 'acordo'],
+    [id]
+  );
 
   const acordo = ((acordos ?? []) as Acordo[])[0];
   const parcelas = (parcelasBrutas ?? []) as AcordoParcela[];
