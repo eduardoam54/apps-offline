@@ -1,9 +1,11 @@
 import { diasEntre, formatarBRL, hoje, limitesDoMes } from '@repo/core';
 import {
   consultaClientesComSaldo,
+  consultaParcelasVencidas,
   consultaRecebidoNoPeriodo,
   consultaTotalAReceber,
   type ClienteComSaldo,
+  type ParcelaVencida,
 } from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, Separador, useTema } from '@repo/ui';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
@@ -32,8 +34,13 @@ export default function Inicio() {
   const recebidoNoMes = recebido?.[0]?.total ?? 0;
   const lista = (clientes ?? []) as ClienteComSaldo[];
 
+  const { data: vencidas } = useLiveQuery(consultaParcelasVencidas(db, hoje()), []);
+
   const devedores = useMemo(() => lista.filter((c) => c.saldoCentavos > 0), [lista]);
-  const alertas = useMemo(() => calcularAlertas(devedores), [devedores]);
+  const alertas = useMemo(
+    () => calcularAlertas(devedores, (vencidas ?? []) as ParcelaVencida[]),
+    [devedores, vencidas]
+  );
 
   return (
     <ScrollView contentContainerStyle={{ padding: tema.espaco.lg, gap: tema.espaco.lg }}>
@@ -183,8 +190,22 @@ type Alerta = { chave: string; titulo: string; detalhe: string };
  * sobre tudo, mas painel cheio de aviso permanente ensina o comerciante a
  * ignorar todos eles — inclusive o que importava.
  */
-function calcularAlertas(devedores: ClienteComSaldo[]): Alerta[] {
+function calcularAlertas(devedores: ClienteComSaldo[], vencidas: ParcelaVencida[]): Alerta[] {
   const alertas: Alerta[] = [];
+
+  // Parcela vencida vem primeiro: e um compromisso que o cliente assumiu e
+  // deixou de cumprir, mais grave do que divida solta em aberto.
+  if (vencidas.length > 0) {
+    const nomes = [...new Set(vencidas.map((v) => v.clienteNome))];
+    alertas.push({
+      chave: 'parcelas',
+      titulo:
+        vencidas.length === 1
+          ? '1 parcela de acordo vencida'
+          : `${vencidas.length} parcelas de acordo vencidas`,
+      detalhe: nomes.join(', '),
+    });
+  }
 
   const acimaDoLimite = devedores.filter(
     (c) => c.limiteCreditoCentavos != null && c.saldoCentavos > c.limiteCreditoCentavos

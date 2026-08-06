@@ -1,10 +1,12 @@
 import { formatarBRL, formatarDataRelativa } from '@repo/core';
 import {
   arquivarCliente,
+  consultaAcordosDoCliente,
   consultaClientesComSaldo,
   consultaPagamentosDoCliente,
   consultaVendasDoCliente,
   montarExtrato,
+  type Acordo,
   type ClienteComSaldo,
 } from '@repo/core/db';
 import { Botao, Cartao, EstadoVazio, LinhaLista, Separador, useTema } from '@repo/ui';
@@ -25,6 +27,9 @@ export default function DetalheCliente() {
   const { data: clientes } = useLiveQuery(consultaClientesComSaldo(db), []);
   const { data: vendas } = useLiveQuery(consultaVendasDoCliente(db, id), [id]);
   const { data: pagamentos } = useLiveQuery(consultaPagamentosDoCliente(db, id), [id]);
+  const { data: acordos } = useLiveQuery(consultaAcordosDoCliente(db, id), [id]);
+
+  const acordoAtivo = ((acordos ?? []) as Acordo[]).find((a) => a.status === 'ativo') ?? null;
 
   const cliente = ((clientes ?? []) as ClienteComSaldo[]).find((c) => c.id === id);
 
@@ -162,7 +167,43 @@ export default function DetalheCliente() {
               }
             />
           )}
+
+          {deve && acordoAtivo == null && (
+            <Botao
+              titulo="Parcelar a dívida"
+              variante="texto"
+              aoTocar={() => router.push(`/acordo/novo?clienteId=${id}`)}
+            />
+          )}
         </View>
+
+        {acordoAtivo != null && (
+          <Pressable onPress={() => router.push(`/acordo/${acordoAtivo.id}`)}>
+            <Cartao estilo={{ gap: tema.espaco.xs, borderLeftWidth: 4, borderLeftColor: tema.cores.primaria }}>
+              <Text
+                style={{
+                  fontSize: tema.fonte.pequeno,
+                  color: tema.cores.textoSecundario,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  fontWeight: tema.peso.medio,
+                }}>
+                Acordo em andamento
+              </Text>
+              <Text
+                style={{
+                  fontSize: tema.fonte.subtitulo,
+                  fontWeight: tema.peso.destaque,
+                  color: tema.cores.texto,
+                }}>
+                {formatarBRL(acordoAtivo.valorTotalCentavos)} em {acordoAtivo.numParcelas}x
+              </Text>
+              <Text style={{ fontSize: tema.fonte.pequeno, color: tema.cores.textoFraco }}>
+                Toque para ver as parcelas
+              </Text>
+            </Cartao>
+          </Pressable>
+        )}
 
         <View style={{ gap: tema.espaco.sm }}>
           <Text

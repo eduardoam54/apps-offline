@@ -65,6 +65,8 @@ export default function RootLayout() {
             <Stack.Screen name="venda/[id]" options={{ title: 'Lançamento' }} />
             <Stack.Screen name="pagamento/novo" options={{ title: 'Receber pagamento' }} />
             <Stack.Screen name="cobranca/lote" options={{ title: 'Cobrar clientes' }} />
+            <Stack.Screen name="acordo/novo" options={{ title: 'Parcelar dívida' }} />
+            <Stack.Screen name="acordo/[id]" options={{ title: 'Acordo' }} />
           </Stack>
         </ProvedorTema>
       </SafeAreaProvider>

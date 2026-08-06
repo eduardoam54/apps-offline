@@ -1,7 +1,11 @@
-import { formatarBRL, hoje, type Centavos } from '@repo/core';
+import { formatarBRL, formatarDataBR, hoje, type Centavos } from '@repo/core';
 import {
+  buscarAcordoAtivo,
   consultaClientesComSaldo,
+  proximaParcela,
+  quitarParcela,
   receberPagamento,
+  type AcordoParcela,
   type ClienteComSaldo,
   type FormaPagamento,
 } from '@repo/core/db';
@@ -34,6 +38,35 @@ export default function NovoPagamento() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [preenchido, setPreenchido] = useState(false);
+  const [parcela, setParcela] = useState<AcordoParcela | null>(null);
+
+  // Havendo acordo ativo, a proxima parcela e o caminho esperado de pagamento.
+  // Quitar por ela mantem o acordo em dia; um pagamento solto abateria o saldo
+  // mas deixaria a parcela em aberto, e o acordo pareceria atrasado sem estar.
+  useEffect(() => {
+    let ativo = true;
+    buscarAcordoAtivo(db, clienteId).then(async (acordo) => {
+      if (!ativo || acordo == null) return;
+      const proxima = await proximaParcela(db, acordo.id);
+      if (ativo) setParcela(proxima);
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [clienteId]);
+
+  async function quitarAParcela() {
+    if (parcela == null) return;
+    setSalvando(true);
+    try {
+      await quitarParcela(db, parcela.id, { forma });
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.back();
+    } catch (falha) {
+      Alert.alert('Não deu para registrar', String(falha));
+      setSalvando(false);
+    }
+  }
 
   // Quitar tudo e de longe o caso mais comum, entao o campo ja abre com o valor
   // total da divida. Preenche uma vez so — depois disso o comerciante manda.
@@ -73,15 +106,45 @@ export default function NovoPagamento() {
         </Text>
       )}
 
+      {parcela != null && (
+        <Cartao estilo={{ gap: tema.espaco.md, borderLeftWidth: 4, borderLeftColor: tema.cores.primaria }}>
+          <View style={{ gap: tema.espaco.xs }}>
+            <Text
+              style={{
+                fontSize: tema.fonte.pequeno,
+                color: tema.cores.textoSecundario,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                fontWeight: tema.peso.medio,
+              }}>
+              Próxima parcela do acordo
+            </Text>
+            <Text
+              style={{
+                fontSize: tema.fonte.subtitulo,
+                fontWeight: tema.peso.destaque,
+                color: tema.cores.texto,
+              }}>
+              {parcela.numero}ª · {formatarBRL(parcela.valorCentavos)}
+            </Text>
+            <Text style={{ fontSize: tema.fonte.pequeno, color: tema.cores.textoFraco }}>
+              Vence em {formatarDataBR(parcela.vencimento)}
+            </Text>
+          </View>
+
+          <Botao titulo="Recebi esta parcela" carregando={salvando} aoTocar={quitarAParcela} />
+        </Cartao>
+      )}
+
       <CampoValor
-        rotulo="Valor recebido"
+        rotulo={parcela != null ? 'Ou outro valor' : 'Valor recebido'}
         valor={valor}
         aoMudar={(v) => {
           setValor(v);
           if (erro != null) setErro(null);
         }}
         erro={erro}
-        autoFoco
+        autoFoco={parcela == null}
       />
 
       {valor !== saldo && saldo > 0 && (
