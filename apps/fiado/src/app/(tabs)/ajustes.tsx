@@ -1,6 +1,7 @@
 import { CHAVES, gravarConfig } from '@repo/core/db';
 import { TEMPLATE_COBRANCA_PADRAO, VARIAVEIS_COBRANCA } from '@repo/docs';
 import { Botao, CampoTexto, Cartao, useTema } from '@repo/ui';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
@@ -126,6 +127,30 @@ export default function Ajustes() {
       </View>
 
       <Botao titulo="Salvar" principal aoTocar={salvar} />
+
+      <View style={{ gap: tema.espaco.md }}>
+        <Text
+          style={{
+            fontSize: tema.fonte.pequeno,
+            fontWeight: tema.peso.forte,
+            color: tema.cores.textoSecundario,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+          }}>
+          Seus dados
+        </Text>
+
+        <Botao
+          titulo="Backup e restauração"
+          variante="secundario"
+          aoTocar={() => router.push('/backup')}
+        />
+        <Botao
+          titulo="Trava do app"
+          variante="secundario"
+          aoTocar={() => router.push('/seguranca')}
+        />
+      </View>
 
       <Text
         style={{

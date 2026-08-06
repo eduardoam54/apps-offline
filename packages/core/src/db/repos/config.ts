@@ -18,6 +18,9 @@ export const CHAVES = {
   telefoneDaLoja: 'telefone_da_loja',
   templateCobranca: 'template_cobranca',
   onboardingConcluido: 'onboarding_concluido',
+  pinHash: 'pin_hash',
+  pinSal: 'pin_sal',
+  biometriaAtiva: 'biometria_ativa',
 } as const;
 
 export type ChaveConfig = (typeof CHAVES)[keyof typeof CHAVES];

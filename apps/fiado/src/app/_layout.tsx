@@ -3,12 +3,15 @@ import { ProvedorTema, temaFiado as tema } from '@repo/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AppState, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { gravarCopiaAutomatica } from '@/backup';
+import { TelaTrava } from '@/components/TelaTrava';
 import { db } from '@/db';
+import { temPinDefinido } from '@/trava';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,12 +24,50 @@ const opcoesCabecalho = {
 
 export default function RootLayout() {
   const { success, error } = useMigracoes(db);
+  const [travado, setTravado] = useState(false);
+  const [verificouTrava, setVerificouTrava] = useState(false);
 
   useEffect(() => {
     if (success || error) {
       SplashScreen.hideAsync();
     }
   }, [success, error]);
+
+  // Depois de migrar: ve se ha PIN e faz a copia automatica do dia.
+  useEffect(() => {
+    if (!success) return;
+
+    let ativo = true;
+
+    temPinDefinido().then((tem) => {
+      if (!ativo) return;
+      setTravado(tem);
+      setVerificouTrava(true);
+    });
+
+    // A copia local roda em segundo plano e nunca pode impedir o app de abrir:
+    // falhar em gravar backup e ruim, mas travar a caderneta por causa disso
+    // seria pior.
+    gravarCopiaAutomatica().catch(() => {});
+
+    return () => {
+      ativo = false;
+    };
+  }, [success]);
+
+  // Trava ao sair do app. Sem isso, deixar o celular no balcao com o app aberto
+  // anularia a trava por completo.
+  useEffect(() => {
+    const inscricao = AppState.addEventListener('change', (estado) => {
+      if (estado === 'background' || estado === 'inactive') {
+        temPinDefinido().then((tem) => {
+          if (tem) setTravado(true);
+        });
+      }
+    });
+
+    return () => inscricao.remove();
+  }, []);
 
   // Banco que nao migrou e banco que nao pode ser usado. Seguir adiante aqui
   // arriscaria mostrar saldo errado — num app de caderneta, e o pior defeito
@@ -46,8 +87,19 @@ export default function RootLayout() {
     );
   }
 
-  // Splash continua na tela ate a migracao terminar.
-  if (!success) return null;
+  // Splash continua na tela ate a migracao terminar e a trava ser conferida.
+  if (!success || !verificouTrava) return null;
+
+  if (travado) {
+    return (
+      <SafeAreaProvider>
+        <ProvedorTema tema={tema}>
+          <StatusBar style="dark" />
+          <TelaTrava aoDestravar={() => setTravado(false)} />
+        </ProvedorTema>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -67,6 +119,8 @@ export default function RootLayout() {
             <Stack.Screen name="cobranca/lote" options={{ title: 'Cobrar clientes' }} />
             <Stack.Screen name="acordo/novo" options={{ title: 'Parcelar dívida' }} />
             <Stack.Screen name="acordo/[id]" options={{ title: 'Acordo' }} />
+            <Stack.Screen name="backup" options={{ title: 'Backup' }} />
+            <Stack.Screen name="seguranca" options={{ title: 'Trava do app' }} />
           </Stack>
         </ProvedorTema>
       </SafeAreaProvider>
