@@ -116,6 +116,7 @@ export default function Inicio() {
 
       {lista.length === 0 ? (
         <EstadoVazio
+          icone="menu-book"
           titulo="Sua caderneta está vazia"
           texto="Cadastre o primeiro cliente para começar a anotar o fiado."
           acao={{ titulo: 'Cadastrar cliente', aoTocar: () => router.push('/cliente/novo') }}

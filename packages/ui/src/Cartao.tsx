@@ -10,9 +10,11 @@ export function Cartao({ children, estilo }: { children: ReactNode; estilo?: Vie
     <View
       style={[
         {
-          backgroundColor: tema.cores.fundo,
-          borderRadius: tema.raio.lg,
+          backgroundColor: tema.cores.superficieElevada,
+          borderRadius: tema.raio.xl,
           padding: tema.espaco.lg,
+          borderWidth: 1,
+          borderColor: tema.cores.bordaCard,
           ...tema.sombra.card,
         },
         estilo,

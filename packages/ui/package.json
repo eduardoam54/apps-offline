@@ -14,8 +14,10 @@
     "@repo/core": "*"
   },
   "peerDependencies": {
+    "@expo/vector-icons": "*",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-reanimated": "*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

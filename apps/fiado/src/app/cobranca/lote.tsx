@@ -38,6 +38,7 @@ export default function CobrancaEmLote() {
   if (devedores.length === 0) {
     return (
       <EstadoVazio
+        icone="celebration"
         titulo="Ninguém devendo"
         texto="Não há cobrança para fazer no momento."
         acao={{ titulo: 'Voltar', aoTocar: () => router.back() }}

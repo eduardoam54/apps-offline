@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
 import { Botao } from './Botao';
@@ -7,6 +9,8 @@ type Props = {
   titulo: string;
   texto?: string;
   acao?: { titulo: string; aoTocar: () => void };
+  /** Icone contextual da tela (ex: pessoas para lista de clientes vazia). */
+  icone?: ComponentProps<typeof MaterialIcons>['name'];
 };
 
 /**
@@ -15,7 +19,7 @@ type Props = {
  * Toda lista do app tem um. Lista vazia sem explicacao parece app quebrado, e o
  * comerciante que acha que o app quebrou volta para o caderno de papel.
  */
-export function EstadoVazio({ titulo, texto, acao }: Props) {
+export function EstadoVazio({ titulo, texto, acao, icone }: Props) {
   const tema = useTema();
 
   return (
@@ -26,6 +30,21 @@ export function EstadoVazio({ titulo, texto, acao }: Props) {
         paddingHorizontal: tema.espaco.lg,
         gap: tema.espaco.sm,
       }}>
+      {icone != null && (
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: tema.raio.pilula,
+            backgroundColor: tema.cores.superficieAfundada,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: tema.espaco.sm,
+          }}>
+          <MaterialIcons name={icone} size={36} color={tema.cores.textoFraco} />
+        </View>
+      )}
+
       <Text
         style={{
           fontSize: tema.fonte.subtitulo,

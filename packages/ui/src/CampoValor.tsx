@@ -1,4 +1,5 @@
 import { formatarNumero, type Centavos } from '@repo/core';
+import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { useTema } from './contexto';
@@ -27,6 +28,7 @@ const MAXIMO_DIGITOS = 11;
  */
 export function CampoValor({ valor, aoMudar, rotulo, autoFoco = false, erro }: Props) {
   const tema = useTema();
+  const [focado, setFocado] = useState(false);
 
   function digitou(texto: string) {
     const digitos = texto.replace(/\D/g, '').slice(0, MAXIMO_DIGITOS);
@@ -54,7 +56,7 @@ export function CampoValor({ valor, aoMudar, rotulo, autoFoco = false, erro }: P
           alignItems: 'center',
           gap: tema.espaco.sm,
           borderBottomWidth: 2,
-          borderBottomColor: erro ? tema.cores.divida : tema.cores.borda,
+          borderBottomColor: erro ? tema.cores.divida : focado ? tema.cores.primaria : tema.cores.borda,
           paddingBottom: tema.espaco.sm,
         }}>
         <Text
@@ -72,6 +74,8 @@ export function CampoValor({ valor, aoMudar, rotulo, autoFoco = false, erro }: P
           keyboardType="number-pad"
           autoFocus={autoFoco}
           selectTextOnFocus={false}
+          onFocus={() => setFocado(true)}
+          onBlur={() => setFocado(false)}
           style={{
             flex: 1,
             fontSize: tema.fonte.gigante,
