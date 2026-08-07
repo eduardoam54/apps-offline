@@ -1,7 +1,8 @@
 import { and, asc, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 
+import type { DataISO } from '../date';
 import type { Centavos } from '../money';
-import { cliente, pagamento, venda, vendaItem } from './schema';
+import { cliente, orcamento, orcamentoItem, pagamento, venda, vendaItem } from './schema';
 import type { BancoSQLite } from './tipos';
 
 /**
@@ -332,4 +333,73 @@ export function montarExtrato(
     if (a.data !== b.data) return a.data < b.data ? 1 : -1;
     return a.criadoEm < b.criadoEm ? 1 : -1;
   });
+}
+
+// -------------------------------------------------------------- orcamento
+
+/**
+ * Tabelas que uma consulta de orcamento le, para `useConsultaViva`.
+ * Lancar um orcamento novo precisa invalidar a lista mesmo sem venda/pagamento
+ * envolvidos.
+ */
+export const TABELAS_DO_ORCAMENTO = ['orcamento', 'orcamento_item', 'cliente'] as const;
+
+/** Lista de orcamentos com o nome do cliente, mais recentes primeiro. */
+export function consultaOrcamentos(db: BancoSQLite) {
+  return db
+    .select({
+      id: orcamento.id,
+      numero: orcamento.numero,
+      data: orcamento.data,
+      status: orcamento.status,
+      totalCentavos: orcamento.totalCentavos,
+      clienteId: orcamento.clienteId,
+      clienteNome: cliente.nome,
+      criadoEm: orcamento.criadoEm,
+    })
+    .from(orcamento)
+    .innerJoin(cliente, eq(orcamento.clienteId, cliente.id))
+    .where(isNull(orcamento.deletadoEm))
+    .orderBy(desc(orcamento.criadoEm));
+}
+
+/** Orcamentos de um cliente, para o historico na tela de detalhe dele. */
+export function consultaOrcamentosDoCliente(db: BancoSQLite, clienteId: string) {
+  return db
+    .select()
+    .from(orcamento)
+    .where(and(eq(orcamento.clienteId, clienteId), isNull(orcamento.deletadoEm)))
+    .orderBy(desc(orcamento.criadoEm));
+}
+
+/** Itens de um orcamento, na ordem em que foram digitados. */
+export function consultaItensDoOrcamento(db: BancoSQLite, orcamentoId: string) {
+  return db
+    .select()
+    .from(orcamentoItem)
+    .where(eq(orcamentoItem.orcamentoId, orcamentoId))
+    .orderBy(asc(orcamentoItem.ordem));
+}
+
+/**
+ * Quantos orcamentos (nao excluidos) foram criados num intervalo de datas.
+ * Alimenta o gate do plano gratuito (3 por mes) — ver `packages/core/src/plano.ts`.
+ */
+export function consultaOrcamentosDoPeriodo(db: BancoSQLite, inicio: DataISO, fim: DataISO) {
+  return db
+    .select({ id: orcamento.id })
+    .from(orcamento)
+    .where(
+      and(isNull(orcamento.deletadoEm), gte(orcamento.data, inicio), lte(orcamento.data, fim))
+    );
+}
+
+/** Versao ja resolvida, para o gate de plano checar antes de criar um orcamento. */
+export async function contarOrcamentosDoPeriodo(
+  db: BancoSQLite,
+  inicio: DataISO,
+  fim: DataISO
+): Promise<number> {
+  const linhas = await consultaOrcamentosDoPeriodo(db, inicio, fim);
+  return linhas.length;
 }

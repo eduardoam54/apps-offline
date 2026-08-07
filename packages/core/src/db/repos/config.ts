@@ -25,21 +25,19 @@ export const CHAVES = {
 
 export type ChaveConfig = (typeof CHAVES)[keyof typeof CHAVES];
 
-export async function lerConfig(
-  db: BancoSQLite,
-  chave: ChaveConfig,
-  padrao = ''
-): Promise<string> {
+/**
+ * O parametro `chave` aceita qualquer string, e nao so `ChaveConfig`: CHAVES
+ * lista as chaves do fiado, mas o mecanismo chave/valor e generico e outros
+ * apps (ex: orcamento, com as chaves de dados da empresa) tem as suas
+ * proprias, definidas localmente.
+ */
+export async function lerConfig(db: BancoSQLite, chave: string, padrao = ''): Promise<string> {
   const linhas = await db.select().from(config).where(eq(config.chave, chave)).limit(1);
   const linha = linhas[0] as { valor: string } | undefined;
   return linha?.valor ?? padrao;
 }
 
-export async function gravarConfig(
-  db: BancoSQLite,
-  chave: ChaveConfig,
-  valor: string
-): Promise<void> {
+export async function gravarConfig(db: BancoSQLite, chave: string, valor: string): Promise<void> {
   await db
     .insert(config)
     .values({ chave, valor, atualizadoEm: agora() })

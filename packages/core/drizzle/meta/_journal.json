@@ -8,6 +8,13 @@
       "when": 1785965602079,
       "tag": "0000_lumpy_butterfly",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786118723764,
+      "tag": "0001_majestic_celestials",
+      "breakpoints": true
     }
   ]
 }

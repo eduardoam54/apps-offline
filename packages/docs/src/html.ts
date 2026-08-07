@@ -92,6 +92,8 @@ export type Pagina = {
   titulo: string;
   /** Nome da loja no topo. Vazio quando o comerciante nao preencheu ajustes. */
   loja: string;
+  /** O que aparece no lugar de `loja` quando ela vem vazia. Cada app tem o seu. */
+  lojaSemNome?: string;
   lojaContato?: string | null;
   /** Rotulo do tipo de documento: "Extrato do cliente", "Clientes devendo". */
   tipo: string;
@@ -101,7 +103,7 @@ export type Pagina = {
 };
 
 export function paginaHtml(p: Pagina): string {
-  const loja = p.loja.trim() === '' ? 'Caderneta' : p.loja;
+  const loja = p.loja.trim() === '' ? (p.lojaSemNome ?? 'Caderneta') : p.loja;
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
