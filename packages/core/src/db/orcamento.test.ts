@@ -152,6 +152,42 @@ describe('total congelado ao aprovar', () => {
   });
 });
 
+describe('atualizarOrcamento nao deixa o total zerar ou ficar negativo', () => {
+  it('editar itens para um desconto que nao cabe mais e rejeitado', async () => {
+    const c = await clienteQualquer();
+    const { orcamento } = await criarOrcamento(db, {
+      clienteId: c.id,
+      descontoCentavos: 500,
+      itens: [{ descricao: 'Item', valorUnitarioCentavos: 1000 }],
+    });
+
+    await expect(
+      atualizarOrcamento(db, orcamento.id, {
+        itens: [{ descricao: 'Item mais barato', valorUnitarioCentavos: 400 }],
+      })
+    ).rejects.toThrow('total precisa ser maior que zero');
+
+    const depois = await buscarOrcamento(db, orcamento.id);
+    expect(depois?.totalCentavos).toBe(500);
+  });
+
+  it('editar so o desconto para um valor maior que os itens e rejeitado', async () => {
+    const c = await clienteQualquer();
+    const { orcamento } = await criarOrcamento(db, {
+      clienteId: c.id,
+      itens: [{ descricao: 'Item', valorUnitarioCentavos: 1000 }],
+    });
+
+    await expect(
+      atualizarOrcamento(db, orcamento.id, { descontoCentavos: 1000 })
+    ).rejects.toThrow('total precisa ser maior que zero');
+
+    const depois = await buscarOrcamento(db, orcamento.id);
+    expect(depois?.totalCentavos).toBe(1000);
+    expect(depois?.descontoCentavos).toBe(0);
+  });
+});
+
 describe('duplicarOrcamento', () => {
   it('copia cliente e itens para um novo orcamento aberto, com numero novo', async () => {
     const c = await clienteQualquer();

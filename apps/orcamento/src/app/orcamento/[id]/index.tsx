@@ -1,12 +1,21 @@
-import { formatarBRL, formatarDataBR, formatarQuantidade } from '@repo/core';
+import {
+  formatarBRL,
+  formatarDataBR,
+  formatarQuantidade,
+  hoje,
+  limitesDoMes,
+  podeCriarOrcamento,
+} from '@repo/core';
 import {
   aprovarOrcamento,
   buscarCliente,
   buscarOrcamento,
+  consultaOrcamentosDoPeriodo,
   duplicarOrcamento,
   itensDoOrcamento,
   reabrirOrcamento,
   recusarOrcamento,
+  useConsultaViva,
   type BancoSQLite,
   type Cliente,
   type Orcamento,
@@ -15,7 +24,7 @@ import {
 import { Botao, Cartao, EstadoVazio, useTema } from '@repo/ui';
 import { File } from 'expo-file-system';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { db } from '@/db';
@@ -35,6 +44,16 @@ export default function DetalheOrcamento() {
   const [itens, setItens] = useState<OrcamentoItem[]>([]);
   const [processando, setProcessando] = useState(false);
   const [gerandoPdf, setGerandoPdf] = useState(false);
+
+  // Mesma checagem de novo.tsx: duplicar cria um orcamento novo que conta pro
+  // limite do mes, entao nao pode ser um atalho pra furar o plano gratuito.
+  const mes = useMemo(() => limitesDoMes(hoje()), []);
+  const { data: orcamentosDoMes } = useConsultaViva(
+    consultaOrcamentosDoPeriodo(db, mes.inicio, mes.fim),
+    ['orcamento'],
+    [mes.inicio, mes.fim]
+  );
+  const cabeMais = podeCriarOrcamento(plano, (orcamentosDoMes ?? []).length);
 
   const carregar = useCallback(async () => {
     const orc = await buscarOrcamento(db, id);
@@ -115,6 +134,18 @@ export default function DetalheOrcamento() {
   }
 
   async function duplicar() {
+    if (!cabeMais) {
+      Alert.alert(
+        'Limite do plano gratuito',
+        'O plano gratuito vai até 3 orçamentos por mês, e duplicar cria um orçamento novo. Veja o plano completo para duplicar sem limite.',
+        [
+          { text: 'Agora não', style: 'cancel' },
+          { text: 'Ver plano', onPress: () => router.push('/plano') },
+        ]
+      );
+      return;
+    }
+
     setProcessando(true);
     try {
       const { orcamento: copia } = await duplicarOrcamento(db, id);

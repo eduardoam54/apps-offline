@@ -143,15 +143,23 @@ export async function atualizarOrcamento(
       throw new Error('atualizarOrcamento: precisa de pelo menos um item');
     }
     const descontoCentavos = dados.descontoCentavos ?? atual.descontoCentavos;
+    const total = calcularTotal(dados.itens, descontoCentavos);
+    if (total <= 0) {
+      throw new Error('atualizarOrcamento: o total precisa ser maior que zero');
+    }
     mudancas.descontoCentavos = descontoCentavos;
-    mudancas.totalCentavos = calcularTotal(dados.itens, descontoCentavos);
+    mudancas.totalCentavos = total;
 
     await db.delete(orcamentoItem).where(eq(orcamentoItem.orcamentoId, id));
     await inserirItens(db, id, dados.itens);
   } else if (dados.descontoCentavos !== undefined) {
     const itens = await itensDoOrcamento(db, id);
+    const total = calcularTotal(itens, dados.descontoCentavos);
+    if (total <= 0) {
+      throw new Error('atualizarOrcamento: o total precisa ser maior que zero');
+    }
     mudancas.descontoCentavos = dados.descontoCentavos;
-    mudancas.totalCentavos = calcularTotal(itens, dados.descontoCentavos);
+    mudancas.totalCentavos = total;
   }
 
   await db.update(orcamento).set(mudancas).where(eq(orcamento.id, id));
