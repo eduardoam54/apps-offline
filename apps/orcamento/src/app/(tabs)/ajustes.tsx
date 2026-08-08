@@ -183,6 +183,12 @@ export default function TelaAjustes() {
         aoTocar={exportarCsv}
       />
 
+      <Botao
+        titulo="Trava do app"
+        variante="secundario"
+        aoTocar={() => router.push('/seguranca')}
+      />
+
       <Botao titulo="Ver plano" variante="texto" aoTocar={() => router.push('/plano')} />
     </ScrollView>
   );

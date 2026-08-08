@@ -33,10 +33,12 @@ no WhatsApp. O app não organiza a vida dele — ele ajuda a **fechar a venda**.
 - Duplicar um orçamento anterior — serviço repetido é a regra, não a exceção.
 - Plano gratuito (3 orçamentos/mês, PDF com marca d'água) x pago (ilimitado,
   sem marca d'água, exportar histórico em CSV).
+- Trava por PIN e biometria, mesmo mecanismo do fiado (`src/trava.ts`,
+  `src/app/seguranca.tsx`) — protege telefone de cliente e dados da empresa de
+  quem pega o celular destravado no balcão.
 
-Deliberadamente fora do MVP: trava por PIN, tela de boas-vindas (onboarding) e
-i18n — nenhum dos três está no README original, e o fiado só tem os dois
-primeiros porque o app dele mexe com saldo de dívida, algo que não existe aqui.
+Deliberadamente fora do MVP: tela de boas-vindas (onboarding) e i18n —
+nenhum dos dois está no README original.
 
 ## Fora do escopo
 

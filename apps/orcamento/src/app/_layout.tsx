@@ -3,22 +3,29 @@ import { ProvedorTema, temaOrcamento } from '@repo/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
-import { Text, useColorScheme, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { AppState, Text, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { TelaTrava } from '@/components/TelaTrava';
 import { db } from '@/db';
 import { useLicenca } from '@/licenca';
+import { temPinDefinido } from '@/trava';
 
 SplashScreen.preventAutoHideAsync();
 
 /**
- * Layout raiz. Mais simples que o do fiado de proposito: sem trava por PIN e
- * sem onboarding no MVP do orcamento — ver decisao registrada no README.
+ * Layout raiz. Mais simples que o do fiado de proposito: sem onboarding no
+ * MVP do orcamento — ver decisao registrada no README. A trava por PIN, no
+ * entanto, e a mesma: o orcamento guarda telefone de cliente e dados da
+ * empresa, e a mesma logica de "balconista bisbilhotando o celular no
+ * balcao" se aplica.
  */
 export default function RootLayout() {
   const { success, error } = useMigracoes(db);
+  const [travado, setTravado] = useState(false);
+  const [verificouTrava, setVerificouTrava] = useState(false);
   const carregarLicenca = useLicenca((e) => e.carregar);
 
   // O plano vem de um arquivo local, nao do banco — ler cedo evita a tela
@@ -52,6 +59,37 @@ export default function RootLayout() {
     }
   }, [success, error]);
 
+  // Depois de migrar: ve se ha PIN.
+  useEffect(() => {
+    if (!success) return;
+
+    let ativo = true;
+
+    temPinDefinido().then((tem) => {
+      if (!ativo) return;
+      setTravado(tem);
+      setVerificouTrava(true);
+    });
+
+    return () => {
+      ativo = false;
+    };
+  }, [success]);
+
+  // Trava ao sair do app. Sem isso, deixar o celular no balcao com o app
+  // aberto anularia a trava por completo.
+  useEffect(() => {
+    const inscricao = AppState.addEventListener('change', (estado) => {
+      if (estado === 'background' || estado === 'inactive') {
+        temPinDefinido().then((tem) => {
+          if (tem) setTravado(true);
+        });
+      }
+    });
+
+    return () => inscricao.remove();
+  }, []);
+
   // Banco que nao migrou e banco que nao pode ser usado. Seguir adiante aqui
   // arriscaria mostrar um orcamento com valor errado. Melhor parar e dizer o
   // que aconteceu.
@@ -81,8 +119,19 @@ export default function RootLayout() {
     );
   }
 
-  // Splash continua na tela ate migrar.
-  if (!success) return null;
+  // Splash continua na tela ate migrar e conferir a trava.
+  if (!success || !verificouTrava) return null;
+
+  if (travado) {
+    return (
+      <SafeAreaProvider>
+        <ProvedorTema temas={temaOrcamento}>
+          <StatusBar style={estiloStatusBar} />
+          <TelaTrava aoDestravar={() => setTravado(false)} />
+        </ProvedorTema>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -100,6 +149,7 @@ export default function RootLayout() {
             <Stack.Screen name="orcamento/[id]/index" options={{ title: 'Orçamento' }} />
             <Stack.Screen name="orcamento/[id]/editar" options={{ title: 'Editar orçamento' }} />
             <Stack.Screen name="plano" options={{ title: 'Plano' }} />
+            <Stack.Screen name="seguranca" options={{ title: 'Trava do app' }} />
           </Stack>
         </ProvedorTema>
       </SafeAreaProvider>
