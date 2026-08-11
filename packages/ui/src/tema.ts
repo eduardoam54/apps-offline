@@ -276,3 +276,4 @@ export function criarTema(destaqueClaro: DestaqueApp, destaqueEscuro: DestaqueAp
 
 export const temaFiado = criarTema(DESTAQUE.fiado.claro, DESTAQUE.fiado.escuro);
 export const temaOrcamento = criarTema(DESTAQUE.orcamento.claro, DESTAQUE.orcamento.escuro);
+export const temaVeiculo = criarTema(DESTAQUE.veiculo.claro, DESTAQUE.veiculo.escuro);

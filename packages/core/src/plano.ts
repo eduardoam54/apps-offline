@@ -98,3 +98,32 @@ export function orcamentosRestantesNoMes(plano: Plano, orcamentosNoMes: number):
   if (plano === 'pago') return null;
   return Math.max(0, LIMITE_ORCAMENTOS_GRATIS_MES - orcamentosNoMes);
 }
+
+// ---------------------------------------------------------------------------
+// Regras do app veiculo
+//
+// O limite aqui e de VEICULOS, nao de lancamentos nem de uso:
+//   - Gratuito: 1 veiculo, historico completo, todos os alertas.
+//   - Pago (vitalicio): multiplos veiculos, relatorio de custos em PDF, backup.
+//
+// O motivo e diferente do fiado (limite de clientes) e do orcamento (limite
+// mensal): quem tem 1 carro usa o app inteiro de graca e vira divulgador.
+// Quem tem frota (2-5 veiculos) paga sem reclamar porque o ganho e imediato.
+//
+// Backup e pago no veiculo, ao contrario do fiado e orcamento. Motivo: dados
+// do veiculo sao historico pessoal — nao financeiro, nao divida. A perda e
+// inconveniente, nao critica. Cobrar por backup aqui nao e "sequestrar dados",
+// e diferenciar o plano pago de forma tangivel para quem tem 1 veiculo.
+// ---------------------------------------------------------------------------
+
+export const LIMITE_VEICULOS_GRATIS = 1;
+
+/** Se cabe mais um veiculo. Vale so para CADASTRAR. */
+export function podeCadastrarVeiculo(plano: Plano, veiculosAtivos: number): boolean {
+  return plano === 'pago' || veiculosAtivos < LIMITE_VEICULOS_GRATIS;
+}
+
+/** Backup do veiculo e recurso do plano pago. */
+export function backupVeiculoLiberado(plano: Plano): boolean {
+  return plano === 'pago';
+}

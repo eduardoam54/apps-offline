@@ -15,6 +15,13 @@
       "when": 1786118723764,
       "tag": "0001_majestic_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786480272185,
+      "tag": "0002_funny_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

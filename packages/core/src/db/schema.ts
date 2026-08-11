@@ -218,6 +218,122 @@ export const orcamentoItem = sqliteTable(
   (t) => [index('idx_item_orcamento').on(t.orcamentoId)]
 );
 
+// ---------------------------------------------------------------------------
+// App veiculo
+// ---------------------------------------------------------------------------
+
+/**
+ * Veiculo cadastrado.
+ *
+ * `kmAtual` e o ultimo km registrado (pelo ultimo abastecimento ou manutencao).
+ * Nao e derivado: o usuario informa o km no cadastro e o app atualiza a cada
+ * lancamento. O historico de km esta nas tabelas de abastecimento e manutencao.
+ */
+export const veiculo = sqliteTable(
+  'veiculo',
+  {
+    id: text('id').primaryKey(),
+    apelido: text('apelido').notNull(),
+    placa: text('placa'),
+    marcaModelo: text('marca_modelo'),
+    /** Ultimo km registrado (ou km inicial no cadastro). */
+    kmAtual: integer('km_atual').notNull().default(0),
+    criadoEm: text('criado_em').notNull(),
+    atualizadoEm: text('atualizado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [index('idx_veiculo_ativo').on(t.deletadoEm)]
+);
+
+/**
+ * Abastecimento.
+ *
+ * Litros em milesimos: 30,5 L = 30500. Mesmo motivo das quantidades no fiado:
+ * nenhum float toca em calculo de custo. Custo por km e consumo medio sao
+ * derivados — nunca gravados.
+ *
+ * Consumo medio so e calculado entre dois TANQUES CHEIOS consecutivos. Um
+ * abastecimento parcial entra no custo total mas nao afeta o km/l — registrar
+ * um parcial como cheio inflaria o consumo artificialmente.
+ */
+export const abastecimento = sqliteTable(
+  'abastecimento',
+  {
+    id: text('id').primaryKey(),
+    veiculoId: text('veiculo_id')
+      .notNull()
+      .references(() => veiculo.id),
+    data: text('data').notNull(),
+    km: integer('km').notNull(),
+    litrosMilesimos: integer('litros_milesimos').notNull(),
+    valorTotalCentavos: integer('valor_total_centavos').notNull(),
+    tanqueCheio: integer('tanque_cheio', { mode: 'boolean' }).notNull().default(true),
+    posto: text('posto'),
+    observacao: text('observacao'),
+    criadoEm: text('criado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [
+    index('idx_abastecimento_veiculo').on(t.veiculoId, t.deletadoEm),
+    index('idx_abastecimento_km').on(t.veiculoId, t.km),
+  ]
+);
+
+/**
+ * Manutencao ou reparo.
+ *
+ * `tipo` e texto livre, nao enum: o profissional sabe o nome certo do servico,
+ * o app nao precisa de um vocabulario fechado que vai ficar desatualizado.
+ */
+export const manutencao = sqliteTable(
+  'manutencao',
+  {
+    id: text('id').primaryKey(),
+    veiculoId: text('veiculo_id')
+      .notNull()
+      .references(() => veiculo.id),
+    data: text('data').notNull(),
+    km: integer('km').notNull(),
+    tipo: text('tipo').notNull(),
+    valorCentavos: integer('valor_centavos').notNull(),
+    oficina: text('oficina'),
+    observacao: text('observacao'),
+    criadoEm: text('criado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [
+    index('idx_manutencao_veiculo').on(t.veiculoId, t.deletadoEm),
+    index('idx_manutencao_km').on(t.veiculoId, t.km),
+  ]
+);
+
+/**
+ * Lembrete: por km ou por data.
+ *
+ * Os dois tipos coexistem na mesma tabela. Um lembrete de troca de oleo e por
+ * km (ex.: a cada 10.000 km). Um lembrete de IPVA e por data. A coluna que nao
+ * se aplica fica null.
+ */
+export const lembrete = sqliteTable(
+  'lembrete',
+  {
+    id: text('id').primaryKey(),
+    veiculoId: text('veiculo_id')
+      .notNull()
+      .references(() => veiculo.id),
+    tipo: text('tipo', { enum: ['km', 'data'] }).notNull(),
+    descricao: text('descricao').notNull(),
+    /** Km alvo — para lembretes do tipo 'km'. */
+    kmAlvo: integer('km_alvo'),
+    /** Data alvo ISO 8601 — para lembretes do tipo 'data'. */
+    dataAlvo: text('data_alvo'),
+    concluido: integer('concluido', { mode: 'boolean' }).notNull().default(false),
+    criadoEm: text('criado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [index('idx_lembrete_veiculo').on(t.veiculoId, t.concluido, t.deletadoEm)]
+);
+
 /** Chave/valor para configuracao: nome da loja, template de cobranca, PIN. */
 export const config = sqliteTable('config', {
   chave: text('chave').primaryKey(),
@@ -247,3 +363,12 @@ export type NovoOrcamento = typeof orcamento.$inferInsert;
 export type OrcamentoItem = typeof orcamentoItem.$inferSelect;
 export type NovoOrcamentoItem = typeof orcamentoItem.$inferInsert;
 export type StatusOrcamento = Orcamento['status'];
+export type Veiculo = typeof veiculo.$inferSelect;
+export type NovoVeiculo = typeof veiculo.$inferInsert;
+export type Abastecimento = typeof abastecimento.$inferSelect;
+export type NovoAbastecimento = typeof abastecimento.$inferInsert;
+export type Manutencao = typeof manutencao.$inferSelect;
+export type NovaManutencao = typeof manutencao.$inferInsert;
+export type Lembrete = typeof lembrete.$inferSelect;
+export type NovoLembrete = typeof lembrete.$inferInsert;
+export type TipoLembrete = Lembrete['tipo'];

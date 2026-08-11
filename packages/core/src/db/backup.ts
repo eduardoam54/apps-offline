@@ -1,13 +1,17 @@
 import { agora } from '../date';
 import {
+  abastecimento,
   acordo,
   acordoParcela,
   cliente,
   config,
+  lembrete,
+  manutencao,
   orcamento,
   orcamentoItem,
   pagamento,
   produtoFrequente,
+  veiculo,
   venda,
   vendaItem,
 } from './schema';
@@ -205,4 +209,65 @@ export async function importarBackupOrcamento(
   }
 
   return resumirBackupOrcamento(backup);
+}
+
+// ---------------------------------------------------------------------------
+// Backup do app veiculo
+// ---------------------------------------------------------------------------
+
+/**
+ * Tabelas do veiculo, na ordem de insercao (pai antes de filho).
+ *
+ * `config` guarda o PIN e configuracoes globais do app (ex: unidade de
+ * combustivel) e entra junto para que o usuario nao precise reconfigurar
+ * tudo apos restaurar.
+ */
+const TABELAS_VEICULO = [
+  { nome: 'veiculo', tabela: veiculo },
+  { nome: 'abastecimento', tabela: abastecimento },
+  { nome: 'manutencao', tabela: manutencao },
+  { nome: 'lembrete', tabela: lembrete },
+  { nome: 'config', tabela: config },
+] as const;
+
+export type ResumoBackupVeiculo = {
+  veiculos: number;
+  abastecimentos: number;
+  manutencoes: number;
+};
+
+export async function exportarBackupVeiculo(db: BancoSQLite): Promise<Backup> {
+  const tabelas: Record<string, Record<string, unknown>[]> = {};
+  for (const { nome, tabela } of TABELAS_VEICULO) {
+    tabelas[nome] = (await db.select().from(tabela)) as Record<string, unknown>[];
+  }
+  return { versao: VERSAO_BACKUP, app: 'veiculo', geradoEm: agora(), tabelas };
+}
+
+export function resumirBackupVeiculo(backup: Backup): ResumoBackupVeiculo {
+  return {
+    veiculos: backup.tabelas.veiculo?.length ?? 0,
+    abastecimentos: backup.tabelas.abastecimento?.length ?? 0,
+    manutencoes: backup.tabelas.manutencao?.length ?? 0,
+  };
+}
+
+export async function importarBackupVeiculo(
+  db: BancoSQLite,
+  backup: Backup
+): Promise<ResumoBackupVeiculo> {
+  for (const { tabela } of [...TABELAS_VEICULO].reverse()) {
+    await db.delete(tabela);
+  }
+
+  for (const { nome, tabela } of TABELAS_VEICULO) {
+    const linhas = backup.tabelas[nome];
+    if (linhas == null || linhas.length === 0) continue;
+
+    for (let i = 0; i < linhas.length; i += 100) {
+      await db.insert(tabela).values(linhas.slice(i, i + 100) as never);
+    }
+  }
+
+  return resumirBackupVeiculo(backup);
 }
