@@ -92,12 +92,14 @@ export default function Clientes() {
         ListEmptyComponent={
           todos.length === 0 ? (
             <EstadoVazio
+              icone="people-outline"
               titulo="Nenhum cliente ainda"
               texto="Cadastre o primeiro cliente para começar a anotar o fiado."
               acao={{ titulo: 'Cadastrar cliente', aoTocar: () => router.push('/cliente/novo') }}
             />
           ) : (
             <EstadoVazio
+              icone="search-off"
               titulo="Nada encontrado"
               texto={
                 busca !== ''

@@ -9,6 +9,7 @@ export * from './migrate';
 export * from './repos/acordo';
 export * from './repos/cliente';
 export * from './repos/config';
+export * from './repos/orcamento';
 export * from './repos/pagamento';
 export * from './repos/produto';
 export * from './repos/venda';

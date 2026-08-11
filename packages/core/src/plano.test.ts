@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   avisoDeLimite,
   LIMITE_CLIENTES_GRATIS,
+  LIMITE_ORCAMENTOS_GRATIS_MES,
+  orcamentosRestantesNoMes,
   podeCadastrarCliente,
+  podeCriarOrcamento,
   recursoLiberado,
   vagasRestantes,
 } from './plano';
@@ -73,5 +76,35 @@ describe('avisoDeLimite', () => {
 
   it('nunca avisa no plano pago', () => {
     expect(avisoDeLimite('pago', 500)).toBe('nenhum');
+  });
+});
+
+describe('podeCriarOrcamento', () => {
+  it('deixa criar enquanto ha vaga no mes', () => {
+    expect(podeCriarOrcamento('gratis', 0)).toBe(true);
+    expect(podeCriarOrcamento('gratis', LIMITE_ORCAMENTOS_GRATIS_MES - 1)).toBe(true);
+  });
+
+  it('barra ao encher o mes', () => {
+    expect(podeCriarOrcamento('gratis', LIMITE_ORCAMENTOS_GRATIS_MES)).toBe(false);
+  });
+
+  it('nao tem limite no plano pago', () => {
+    expect(podeCriarOrcamento('pago', 500)).toBe(true);
+  });
+});
+
+describe('orcamentosRestantesNoMes', () => {
+  it('conta quantos sobram', () => {
+    expect(orcamentosRestantesNoMes('gratis', 0)).toBe(LIMITE_ORCAMENTOS_GRATIS_MES);
+    expect(orcamentosRestantesNoMes('gratis', LIMITE_ORCAMENTOS_GRATIS_MES - 1)).toBe(1);
+  });
+
+  it('nunca fica negativo', () => {
+    expect(orcamentosRestantesNoMes('gratis', 40)).toBe(0);
+  });
+
+  it('e null quando nao ha limite', () => {
+    expect(orcamentosRestantesNoMes('pago', 500)).toBeNull();
   });
 });

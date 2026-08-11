@@ -164,6 +164,60 @@ export const produtoFrequente = sqliteTable(
   (t) => [index('idx_produto_usos').on(t.usos)]
 );
 
+/**
+ * Orcamento (app orcamento). Reaproveita a tabela `cliente` acima — mesma
+ * entidade, banco proprio (cada app abre seu proprio arquivo SQLite).
+ *
+ * `totalCentavos` e recalculado a partir dos itens na gravacao, igual a
+ * `venda.valorCentavos`. Nao e o "saldo derivado" do CLAUDE.md — aquela regra
+ * vale para saldo corrente de cliente, nao para o total de um documento
+ * fechado. "Total congelado ao aprovar" nao tem mecanismo proprio no banco:
+ * os repositorios recusam editar itens quando status !== 'aberto'.
+ */
+export const orcamento = sqliteTable(
+  'orcamento',
+  {
+    id: text('id').primaryKey(),
+    clienteId: text('cliente_id')
+      .notNull()
+      .references(() => cliente.id),
+    /** Sequencial, comeca em 1. */
+    numero: integer('numero').notNull(),
+    /** Dia civil do orcamento. */
+    data: text('data').notNull(),
+    status: text('status', { enum: ['aberto', 'aprovado', 'recusado'] })
+      .notNull()
+      .default('aberto'),
+    totalCentavos: integer('total_centavos').notNull(),
+    descontoCentavos: integer('desconto_centavos').notNull().default(0),
+    observacoes: text('observacoes'),
+    criadoEm: text('criado_em').notNull(),
+    atualizadoEm: text('atualizado_em').notNull(),
+    deletadoEm: text('deletado_em'),
+  },
+  (t) => [
+    index('idx_orcamento_cliente').on(t.clienteId, t.deletadoEm),
+    index('idx_orcamento_status').on(t.status),
+    index('idx_orcamento_data').on(t.data),
+  ]
+);
+
+export const orcamentoItem = sqliteTable(
+  'orcamento_item',
+  {
+    id: text('id').primaryKey(),
+    orcamentoId: text('orcamento_id')
+      .notNull()
+      .references(() => orcamento.id, { onDelete: 'cascade' }),
+    descricao: text('descricao').notNull(),
+    /** Quantidade em milesimos: 1,5 = 1500. */
+    quantidadeMilesimos: integer('quantidade_milesimos').notNull().default(1000),
+    valorUnitarioCentavos: integer('valor_unitario_centavos').notNull(),
+    ordem: integer('ordem').notNull().default(0),
+  },
+  (t) => [index('idx_item_orcamento').on(t.orcamentoId)]
+);
+
 /** Chave/valor para configuracao: nome da loja, template de cobranca, PIN. */
 export const config = sqliteTable('config', {
   chave: text('chave').primaryKey(),
@@ -188,3 +242,8 @@ export type NovaAcordoParcela = typeof acordoParcela.$inferInsert;
 export type ProdutoFrequente = typeof produtoFrequente.$inferSelect;
 export type FormaPagamento = Pagamento['forma'];
 export type StatusAcordo = Acordo['status'];
+export type Orcamento = typeof orcamento.$inferSelect;
+export type NovoOrcamento = typeof orcamento.$inferInsert;
+export type OrcamentoItem = typeof orcamentoItem.$inferSelect;
+export type NovoOrcamentoItem = typeof orcamentoItem.$inferInsert;
+export type StatusOrcamento = Orcamento['status'];

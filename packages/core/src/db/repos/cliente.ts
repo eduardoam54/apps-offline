@@ -1,4 +1,4 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
 
 import { agora } from '../../date';
 import { novoId } from '../../id';
@@ -98,6 +98,17 @@ export async function reativarCliente(db: BancoSQLite, id: string): Promise<void
 export async function contarClientesAtivos(db: BancoSQLite): Promise<number> {
   const linhas = await db.select({ id: cliente.id }).from(cliente).where(isNull(cliente.deletadoEm));
   return linhas.length;
+}
+
+/**
+ * Clientes ativos, ordenados por nome — sem saldo.
+ *
+ * Para apps (como orcamento) onde cliente e so cadastro, sem divida associada.
+ * O fiado usa `consultaClientesComSaldo` em vez desta, porque la o saldo e o
+ * que ordena a lista.
+ */
+export function consultaClientesAtivos(db: BancoSQLite) {
+  return db.select().from(cliente).where(isNull(cliente.deletadoEm)).orderBy(asc(cliente.nome));
 }
 
 /** Evita cadastrar "Seu Joao" duas vezes por engano. */

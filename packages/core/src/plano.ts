@@ -77,3 +77,24 @@ export function avisoDeLimite(plano: Plano, clientesAtivos: number): AvisoDeLimi
   if (vagas === 0) return 'cheio';
   return vagas <= VAGAS_PARA_AVISAR ? 'perto' : 'nenhum';
 }
+
+/**
+ * Regras do app orcamento.
+ *
+ * O limite aqui e de ORCAMENTOS NO MES, e nao de clientes: cadastrar cliente e
+ * so o meio, o orcamento e que e o produto. Reinicia todo mes de proposito —
+ * diferente do limite de clientes do fiado (que e cumulativo), aqui o
+ * profissional que teve um mes cheio nao fica bloqueado no mes seguinte.
+ */
+export const LIMITE_ORCAMENTOS_GRATIS_MES = 3;
+
+/** Se cabe mais um orcamento neste mes. Vale so para CRIAR — orcamento ja criado continua acessivel. */
+export function podeCriarOrcamento(plano: Plano, orcamentosNoMes: number): boolean {
+  return plano === 'pago' || orcamentosNoMes < LIMITE_ORCAMENTOS_GRATIS_MES;
+}
+
+/** Quantos orcamentos ainda cabem neste mes. `null` quando nao ha limite. */
+export function orcamentosRestantesNoMes(plano: Plano, orcamentosNoMes: number): number | null {
+  if (plano === 'pago') return null;
+  return Math.max(0, LIMITE_ORCAMENTOS_GRATIS_MES - orcamentosNoMes);
+}

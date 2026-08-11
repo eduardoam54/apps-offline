@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { useTema } from './contexto';
@@ -10,6 +12,9 @@ type Props = {
   corValor?: string;
   rodape?: string | null;
   aoTocar?: () => void;
+  /** So usar quando o icone carrega significado (tipo do lancamento), nunca
+   * repetido em toda linha de uma lista longa — vira ruido visual. */
+  icone?: ComponentProps<typeof MaterialIcons>['name'];
 };
 
 /**
@@ -19,7 +24,7 @@ type Props = {
  * extrato e parcela de acordo. Quem decide o que o valor significa — e de que
  * cor ele fica — e a tela que usa.
  */
-export function LinhaLista({ titulo, subtitulo, valor, corValor, rodape, aoTocar }: Props) {
+export function LinhaLista({ titulo, subtitulo, valor, corValor, rodape, aoTocar, icone }: Props) {
   const tema = useTema();
 
   const conteudo = (
@@ -31,8 +36,22 @@ export function LinhaLista({ titulo, subtitulo, valor, corValor, rodape, aoTocar
         minHeight: tema.toque.principal,
         paddingVertical: tema.espaco.md,
         paddingHorizontal: tema.espaco.lg,
-        backgroundColor: tema.cores.fundo,
+        backgroundColor: tema.cores.superficieElevada,
       }}>
+      {icone != null && (
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: tema.raio.pilula,
+            backgroundColor: tema.cores.primariaClara,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <MaterialIcons name={icone} size={20} color={tema.cores.primaria} />
+        </View>
+      )}
+
       <View style={{ flex: 1, gap: 2 }}>
         <Text
           numberOfLines={1}

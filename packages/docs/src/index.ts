@@ -9,6 +9,7 @@
 export * from './whatsapp';
 export * from './html';
 export * from './extrato';
+export * from './orcamento';
 export * from './relatorio';
 export * from './csv';
 export * from './nome-arquivo';

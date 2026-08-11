@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
 import { useTema } from './contexto';
@@ -28,6 +29,9 @@ export function CampoTexto({
   aoEnviar,
 }: Props) {
   const tema = useTema();
+  const [focado, setFocado] = useState(false);
+
+  const corBorda = erro ? tema.cores.divida : focado ? tema.cores.primaria : tema.cores.bordaForte;
 
   return (
     <View style={{ gap: tema.espaco.xs }}>
@@ -51,16 +55,18 @@ export function CampoTexto({
         autoCapitalize={maiusculaInicial}
         onSubmitEditing={aoEnviar}
         returnKeyType={aoEnviar ? 'done' : 'default'}
+        onFocus={() => setFocado(true)}
+        onBlur={() => setFocado(false)}
         style={{
           minHeight: multilinha ? 96 : tema.toque.principal,
           borderWidth: 1,
-          borderColor: erro ? tema.cores.divida : tema.cores.bordaForte,
+          borderColor: corBorda,
           borderRadius: tema.raio.md,
           paddingHorizontal: tema.espaco.lg,
           paddingVertical: tema.espaco.md,
           fontSize: tema.fonte.corpo,
           color: tema.cores.texto,
-          backgroundColor: tema.cores.fundo,
+          backgroundColor: focado ? tema.cores.primariaClara : tema.cores.superficieAfundada,
           textAlignVertical: multilinha ? 'top' : 'center',
         }}
       />
