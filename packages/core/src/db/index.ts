@@ -13,6 +13,7 @@ export * from './repos/orcamento';
 export * from './repos/pagamento';
 export * from './repos/produto';
 export * from './repos/venda';
+export * from './repos/veiculo';
 export * from './schema';
 export * from './tipos';
 export * from './viva';
