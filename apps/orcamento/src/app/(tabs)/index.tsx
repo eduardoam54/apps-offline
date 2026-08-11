@@ -3,6 +3,7 @@ import { Botao, EstadoVazio, Separador, useTema } from '@repo/ui';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, ScrollView, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { LinhaOrcamento } from '@/components/LinhaOrcamento';
 import { db } from '@/db';
@@ -24,6 +25,7 @@ type Filtro = (typeof FILTROS)[number];
 
 export default function TelaOrcamentos() {
   const tema = useTema();
+  const { t } = useTranslation();
   const [filtro, setFiltro] = useState<Filtro>('todos');
 
   const { data } = useConsultaViva(consultaOrcamentos(db), TABELAS_DO_ORCAMENTO, []);
@@ -50,7 +52,7 @@ export default function TelaOrcamentos() {
           {FILTROS.map((f) => (
             <Botao
               key={f}
-              titulo={f === 'todos' ? 'Todos' : rotuloStatus(f)}
+              titulo={f === 'todos' ? t('listaOrcamentos.todos') : rotuloStatus(f)}
               variante={filtro === f ? 'secundario' : 'texto'}
               aoTocar={() => setFiltro(f)}
             />
@@ -77,14 +79,14 @@ export default function TelaOrcamentos() {
           todos.length === 0 ? (
             <EstadoVazio
               icone="description"
-              titulo="Nenhum orçamento ainda"
-              texto="Crie o primeiro orçamento para começar."
-              acao={{ titulo: 'Novo orçamento', aoTocar: () => router.push('/orcamento/novo') }}
+              titulo={t('listaOrcamentos.nenhumAinda')}
+              texto={t('listaOrcamentos.crie')}
+              acao={{ titulo: t('listaOrcamentos.novoOrcamento'), aoTocar: () => router.push('/orcamento/novo') }}
             />
           ) : (
             <EstadoVazio
               icone="filter-list-off"
-              titulo="Nada por aqui"
+              titulo={t('listaOrcamentos.nadaPorAqui')}
               texto={`Nenhum orçamento ${rotuloStatus(filtro as Exclude<Filtro, 'todos'>).toLowerCase()}.`}
             />
           )
@@ -98,7 +100,7 @@ export default function TelaOrcamentos() {
           borderTopWidth: 1,
           borderTopColor: tema.cores.borda,
         }}>
-        <Botao titulo="Novo orçamento" principal aoTocar={() => router.push('/orcamento/novo')} />
+        <Botao titulo={t('listaOrcamentos.novoOrcamento')} principal aoTocar={() => router.push('/orcamento/novo')} />
       </View>
     </View>
   );

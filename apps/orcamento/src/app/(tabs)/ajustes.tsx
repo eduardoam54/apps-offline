@@ -6,6 +6,7 @@ import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { db } from '@/db';
 import { exportarOrcamentosEmCsv } from '@/exportar';
@@ -24,6 +25,7 @@ import { useLicenca } from '@/licenca';
  */
 export default function TelaAjustes() {
   const tema = useTema();
+  const { t } = useTranslation();
   const empresa = useEmpresa();
   const plano = useLicenca((e) => e.plano);
 
@@ -62,13 +64,10 @@ export default function TelaAjustes() {
         }))
       );
       if (!compartilhou) {
-        Alert.alert(
-          'Compartilhamento indisponível',
-          'Este aparelho não oferece o menu de compartilhar arquivos.'
-        );
+        Alert.alert(t('ajustes.compartilhamentoIndisponivel'), t('ajustes.aparelhoSemCompartilhar'));
       }
     } catch (falha) {
-      Alert.alert('Não deu para exportar', String(falha));
+      Alert.alert(t('ajustes.naoDeuExportar'), String(falha));
     } finally {
       setExportando(false);
     }
@@ -112,9 +111,9 @@ export default function TelaAjustes() {
         gravarConfig(db, CHAVES_EMPRESA.documento, documento.trim()),
         gravarConfig(db, CHAVES_EMPRESA.logoUri, logoUri),
       ]);
-      Alert.alert('Salvo', 'Os dados da empresa foram atualizados.');
+      Alert.alert(t('ajustes.salvo'), t('ajustes.dadosAtualizados'));
     } catch (falha) {
-      Alert.alert('Não deu para salvar', String(falha));
+      Alert.alert(t('ajustes.naoDeuSalvar'), String(falha));
     } finally {
       setSalvando(false);
     }
@@ -143,53 +142,59 @@ export default function TelaAjustes() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-            <Text style={{ fontSize: tema.fonte.micro, color: tema.cores.textoFraco }}>Sem logo</Text>
+            <Text style={{ fontSize: tema.fonte.micro, color: tema.cores.textoFraco }}>{t("ajustes.semLogo")}</Text>
           </View>
         )}
-        <Botao titulo="Escolher logo" variante="secundario" aoTocar={escolherLogo} />
+        <Botao titulo={t("ajustes.escolherLogo")} variante="secundario" aoTocar={escolherLogo} />
       </Cartao>
 
       <CampoTexto
-        rotulo="Nome da empresa"
+        rotulo={t("ajustes.nomeDaEmpresa")}
         valor={nome}
         aoMudar={setNome}
-        espacoReservado="Ex.: João Eletricista"
+        espacoReservado={t("ajustes.nomePlaceholder")}
       />
 
       <CampoTexto
-        rotulo="Telefone"
+        rotulo={t("ajustes.telefone")}
         valor={telefone}
         aoMudar={setTelefone}
-        espacoReservado="(00) 00000-0000"
+        espacoReservado={t("ajustes.telefonePlaceholder")}
         tipoTeclado="phone-pad"
         maiusculaInicial="none"
       />
 
       <CampoTexto
-        rotulo="Documento (CPF ou CNPJ)"
+        rotulo={t("ajustes.documento")}
         valor={documento}
         aoMudar={setDocumento}
-        espacoReservado="Opcional"
+        espacoReservado={t("ajustes.documentoPlaceholder")}
         tipoTeclado="numeric"
         maiusculaInicial="none"
       />
 
-      <Botao titulo="Salvar" principal carregando={salvando} aoTocar={salvar} />
+      <Botao titulo={t("ajustes.salvar")} principal carregando={salvando} aoTocar={salvar} />
 
       <Botao
-        titulo="Exportar histórico (CSV)"
+        titulo={t("ajustes.exportarHistorico")}
         variante="secundario"
         carregando={exportando}
         aoTocar={exportarCsv}
       />
 
       <Botao
-        titulo="Trava do app"
+        titulo={t("ajustes.backupRestauracao")}
+        variante="secundario"
+        aoTocar={() => router.push('/backup')}
+      />
+
+      <Botao
+        titulo={t("ajustes.travaDoApp")}
         variante="secundario"
         aoTocar={() => router.push('/seguranca')}
       />
 
-      <Botao titulo="Ver plano" variante="texto" aoTocar={() => router.push('/plano')} />
+      <Botao titulo={t("ajustes.verPlano")} variante="texto" aoTocar={() => router.push('/plano')} />
     </ScrollView>
   );
 }

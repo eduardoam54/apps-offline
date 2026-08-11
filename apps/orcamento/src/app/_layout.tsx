@@ -1,5 +1,6 @@
 import { useMigracoes } from '@repo/core/db';
 import { ProvedorTema, temaOrcamento } from '@repo/ui';
+import '@/i18n';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -150,6 +151,7 @@ export default function RootLayout() {
             <Stack.Screen name="orcamento/[id]/editar" options={{ title: 'Editar orçamento' }} />
             <Stack.Screen name="plano" options={{ title: 'Plano' }} />
             <Stack.Screen name="seguranca" options={{ title: 'Trava do app' }} />
+            <Stack.Screen name="backup" options={{ title: 'Backup' }} />
           </Stack>
         </ProvedorTema>
       </SafeAreaProvider>
