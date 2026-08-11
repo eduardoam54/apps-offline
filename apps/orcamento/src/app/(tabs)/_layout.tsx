@@ -1,9 +1,11 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useTema } from '@repo/ui';
 import { Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export default function LayoutAbas() {
   const tema = useTema();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -26,7 +28,7 @@ export default function LayoutAbas() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Orçamentos',
+          title: t('tab.orcamentos'),
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="description" size={size} color={color} />
           ),
@@ -35,14 +37,14 @@ export default function LayoutAbas() {
       <Tabs.Screen
         name="clientes"
         options={{
-          title: 'Clientes',
+          title: t('tab.clientes'),
           tabBarIcon: ({ color, size }) => <MaterialIcons name="people" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="ajustes"
         options={{
-          title: 'Ajustes',
+          title: t('tab.ajustes'),
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="settings" size={size} color={color} />
           ),

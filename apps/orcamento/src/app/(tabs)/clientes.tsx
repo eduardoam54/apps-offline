@@ -4,11 +4,13 @@ import { Botao, EstadoVazio, LinhaLista, Separador, useTema } from '@repo/ui';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { db } from '@/db';
 
 export default function TelaClientes() {
   const tema = useTema();
+  const { t } = useTranslation();
   const [busca, setBusca] = useState('');
 
   const { data } = useConsultaViva(consultaClientesAtivos(db), ['cliente'], []);
@@ -31,7 +33,7 @@ export default function TelaClientes() {
         <TextInput
           value={busca}
           onChangeText={setBusca}
-          placeholder="Buscar por nome ou telefone"
+          placeholder={t('listaClientes.buscar')}
           placeholderTextColor={tema.cores.desabilitado}
           style={{
             minHeight: tema.toque.minimo,
@@ -62,15 +64,15 @@ export default function TelaClientes() {
           todos.length === 0 ? (
             <EstadoVazio
               icone="people-outline"
-              titulo="Nenhum cliente ainda"
-              texto="Cadastre o primeiro cliente para começar a fazer orçamentos."
-              acao={{ titulo: 'Cadastrar cliente', aoTocar: () => router.push('/cliente/novo') }}
+              titulo={t('listaClientes.nenhumAinda')}
+              texto={t('listaClientes.crie')}
+              acao={{ titulo: t('listaClientes.novoCliente'), aoTocar: () => router.push('/cliente/novo') }}
             />
           ) : (
             <EstadoVazio
               icone="search-off"
-              titulo="Nada encontrado"
-              texto={`Nenhum cliente combina com "${busca}".`}
+              titulo={t('listaClientes.nadaEncontrado')}
+              texto={t('listaClientes.nenhunComBusca', { busca })}
             />
           )
         }
@@ -83,7 +85,7 @@ export default function TelaClientes() {
           borderTopWidth: 1,
           borderTopColor: tema.cores.borda,
         }}>
-        <Botao titulo="Novo cliente" principal aoTocar={() => router.push('/cliente/novo')} />
+        <Botao titulo={t('listaClientes.novoCliente')} principal aoTocar={() => router.push('/cliente/novo')} />
       </View>
     </View>
   );

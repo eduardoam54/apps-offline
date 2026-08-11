@@ -4,6 +4,8 @@ import {
   acordoParcela,
   cliente,
   config,
+  orcamento,
+  orcamentoItem,
   pagamento,
   produtoFrequente,
   venda,
@@ -143,4 +145,64 @@ export function nomeDoArquivoBackup(app = 'fiado', quando = new Date()): string 
   const data = `${quando.getFullYear()}-${p(quando.getMonth() + 1)}-${p(quando.getDate())}`;
   const hora = `${p(quando.getHours())}${p(quando.getMinutes())}`;
   return `${app}-backup-${data}-${hora}.json`;
+}
+
+// ---------------------------------------------------------------------------
+// Backup do app orcamento
+// ---------------------------------------------------------------------------
+
+/**
+ * Tabelas do orcamento, na ordem de insercao (pai antes de filho).
+ *
+ * `config` inclui os dados da empresa (logo, nome, telefone, documento) e o
+ * PIN — tudo que o usuario configurou. Deixar de fora tornaria o backup
+ * incompleto e forcaria reconfigurar tudo apos restaurar.
+ */
+const TABELAS_ORCAMENTO = [
+  { nome: 'cliente', tabela: cliente },
+  { nome: 'config', tabela: config },
+  { nome: 'orcamento', tabela: orcamento },
+  { nome: 'orcamento_item', tabela: orcamentoItem },
+] as const;
+
+export type ResumoBackupOrcamento = {
+  clientes: number;
+  orcamentos: number;
+};
+
+export async function exportarBackupOrcamento(db: BancoSQLite): Promise<Backup> {
+  const tabelas: Record<string, Record<string, unknown>[]> = {};
+  for (const { nome, tabela } of TABELAS_ORCAMENTO) {
+    tabelas[nome] = (await db.select().from(tabela)) as Record<string, unknown>[];
+  }
+  return { versao: VERSAO_BACKUP, app: 'orcamento', geradoEm: agora(), tabelas };
+}
+
+/** Resumo do que vem no backup — mostrado ao usuario antes de confirmar restauracao. */
+export function resumirBackupOrcamento(backup: Backup): ResumoBackupOrcamento {
+  return {
+    clientes: backup.tabelas.cliente?.length ?? 0,
+    orcamentos: backup.tabelas.orcamento?.length ?? 0,
+  };
+}
+
+export async function importarBackupOrcamento(
+  db: BancoSQLite,
+  backup: Backup
+): Promise<ResumoBackupOrcamento> {
+  // Apaga na ordem inversa para nao violar chave estrangeira.
+  for (const { tabela } of [...TABELAS_ORCAMENTO].reverse()) {
+    await db.delete(tabela);
+  }
+
+  for (const { nome, tabela } of TABELAS_ORCAMENTO) {
+    const linhas = backup.tabelas[nome];
+    if (linhas == null || linhas.length === 0) continue;
+
+    for (let i = 0; i < linhas.length; i += 100) {
+      await db.insert(tabela).values(linhas.slice(i, i + 100) as never);
+    }
+  }
+
+  return resumirBackupOrcamento(backup);
 }
