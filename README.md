@@ -12,9 +12,9 @@ convenções de código estão no `CLAUDE.md`.
 
 | Pasta | App | Público | Status |
 |---|---|---|---|
-| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fases 0–7 concluídas** — MVP e paywall prontos; falta publicar e ligar a compra |
-| `apps/orcamento` | Orçamento / ordem de serviço em PDF | Autônomo (eletricista, encanador, montador) | **Fases 0–6 concluídas** — MVP e paywall prontos; falta publicar e ligar a compra |
-| `apps/veiculo` | Manutenção e abastecimento de veículo | Motorista de app, dono de frota pequena | Planejado |
+| `apps/fiado` | Caderneta de fiado digital | Mercadinho, bar, salão, açougue | **Fases 0–8 concluídas** — MVP, paywall, i18n e redesign visual prontos; política de privacidade já hospedada; falta publicar e ligar a compra |
+| `apps/orcamento` | Orçamento / ordem de serviço em PDF | Autônomo (eletricista, encanador, montador) | **MVP completo** — paywall, backup, i18n e trava por PIN prontos; falta publicar e ligar a compra |
+| `apps/veiculo` | Manutenção e abastecimento de veículo | Motorista de app, dono de frota pequena | **MVP completo** — falta publicar |
 
 Cada app é publicado de forma independente nas lojas. O que eles compartilham é
 código, não identidade.

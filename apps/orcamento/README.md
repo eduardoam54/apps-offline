@@ -1,11 +1,13 @@
 # Orçamento — Orçamento e ordem de serviço em PDF
 
-**Status:** MVP completo (fases 0–6) · **Ordem:** 2º app a ser desenvolvido
+**Status:** MVP completo (fases 0–6) + backup/restauração + i18n + trava por
+PIN · **Ordem:** 2º app a ser desenvolvido
 
 O app roda: cadastro de cliente, criar orçamento com itens, aprovar/recusar/
-reabrir, duplicar, gerar PDF com logo e compartilhar, dados da empresa e o
-gate de plano gratuito x pago. Falta publicar — mesmo caminho do fiado (Play
-Console, build assinado, depois RevenueCat).
+reabrir, duplicar, gerar PDF com logo e compartilhar, dados da empresa, o
+gate de plano gratuito x pago, backup/restauração, trava por PIN/biometria e
+interface em pt/en/es (segue o idioma do aparelho). Falta publicar — mesmo
+caminho do fiado (Play Console, build assinado, depois RevenueCat).
 
 Transforma o orçamento que o autônomo hoje manda por mensagem de texto em um PDF
 com a cara de empresa.
@@ -37,8 +39,8 @@ no WhatsApp. O app não organiza a vida dele — ele ajuda a **fechar a venda**.
   `src/app/seguranca.tsx`) — protege telefone de cliente e dados da empresa de
   quem pega o celular destravado no balcão.
 
-Deliberadamente fora do MVP: tela de boas-vindas (onboarding) e i18n —
-nenhum dos dois está no README original.
+Deliberadamente fora do MVP: tela de boas-vindas (onboarding) — não está no
+README original. (i18n entrou depois do MVP inicial, junto com backup/PIN.)
 
 ## Fora do escopo
 

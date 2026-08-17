@@ -1,6 +1,6 @@
 # Veículo — Manutenção e abastecimento
 
-**Status:** planejado · **Ordem:** 3º app a ser desenvolvido
+**Status:** MVP completo (fases 0–6) · **Ordem:** 3º app a ser desenvolvido
 
 Registro de manutenção, abastecimento e documentos do veículo, com alertas por
 quilometragem.

@@ -122,7 +122,13 @@ Depois de qualquer mudanca em `packages/core/src/db/schema.ts`, rode
 
 ## Estado
 
-App `fiado`, fases 0 a 6 concluidas:
+Os tres apps do monorepo tem MVP completo. `fiado` foi o primeiro e e o mais
+maduro; `orcamento` e `veiculo` repetem a mesma mecanica de `packages/core` e
+`packages/ui`, cada um com seu proprio banco e regras de produto.
+
+### `apps/fiado` — caderneta de fiado digital
+
+Fases 0 a 8 concluidas, mais uma fase 8b:
 
 | Fase | O que entrou |
 |---|---|
@@ -135,20 +141,48 @@ App `fiado`, fases 0 a 6 concluidas:
 | 6 | exportar extrato e relatorio em PDF, planilhas em CSV |
 | 7 | plano gratuito x pago: limite de clientes, gate de exportar, tela de plano |
 | 8 | boas-vindas, icone proprio, eas.json, politica de privacidade |
+| 8b | i18n (pt/en/es, segue o idioma do aparelho) e redesign visual de `packages/ui`: dark mode completo, cards com profundidade sutil, estado de foco em campos, icones contextuais |
 
 O paywall esta inteiro EXCETO a compra: `apps/fiado/src/loja.ts` e o unico ponto
 de encaixe do RevenueCat e hoje reporta "compra indisponivel". Ele so pode ser
 ligado depois de o app ser publicado, porque produto de compra precisa existir
 na Play Console primeiro. O arquivo lista os passos na ordem.
 
+A politica de privacidade ja esta hospedada:
+`https://eduardoam54.github.io/apps-offline/` (fonte em `docs/index.html` na
+raiz do repo, servida por GitHub Pages a partir de `main`).
+
 Falta para publicar, e cada um depende de uma decisao ou conta sua:
 
-1. hospedar a `POLITICA-DE-PRIVACIDADE.md` numa URL publica (a Play Console exige)
+1. ~~hospedar a `POLITICA-DE-PRIVACIDADE.md` numa URL publica~~ — feito
 2. conta na Play Console (US$ 25) e build de release assinado (`eas build`)
 3. publicar em teste fechado e criar os produtos de compra
 4. so entao o RevenueCat, preenchendo `src/loja.ts`
 
-Sem cobertura de teste ate agora: as telas. Os testes sao de logica pura e banco
-— o bug do saldo so apareceu rodando o app no emulador.
+### `apps/orcamento` — orcamento e ordem de servico em PDF
+
+MVP completo (fases 0-6): cadastro de cliente, orcamento com itens, aprovar/
+recusar/reabrir, duplicar, PDF com logo, dados da empresa, plano gratuito x
+pago. Ganhou depois backup/restauracao, i18n e trava por PIN/biometria
+(mesmo mecanismo do fiado). Falta publicar — mesmo caminho do fiado.
+
+### `apps/veiculo` — manutencao e abastecimento de veiculo
+
+MVP completo (fases 0-6): cadastro de veiculo, abastecimento com calculo de
+consumo (km/l) e custo por km, manutencoes, alertas por quilometragem e por
+data. Terceiro app do monorepo, mesma mecanica de `packages/core`/`packages/ui`.
+Falta publicar.
+
+### Dividido entre sessoes
+
+Varias frentes deste projeto rodam em sessoes paralelas do Claude Code no
+mesmo working directory. Antes de assumir que o `git log`/estado do disco bate
+com o que uma conversa lembra, vale conferir `git log --oneline -10` — trabalho
+relevante pode ter entrado por fora da conversa atual.
+
+Sem cobertura de teste automatizado nas telas de nenhum dos tres apps. Os
+testes sao de logica pura e banco (`packages/core`, `packages/docs`) — bugs de
+tela (ex.: o bug do saldo do fiado, o tab bar sem `backgroundColor` no dark
+mode) so aparecem rodando o app no emulador.
 
 O plano completo esta em `README.md` e nos README de cada pasta.
