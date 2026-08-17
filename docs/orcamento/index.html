@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidade — Orçamento</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #e2e2e2;
+    --accent: #1d4ed8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --fg: #eaeaea;
+      --muted: #a0a0a0;
+      --border: #2c2f36;
+      --accent: #60a5fa;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+  .atualizado {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin-top: 2.25rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+  }
+  p, li { color: var(--fg); }
+  ul { padding-left: 1.3rem; }
+  li { margin-bottom: 0.4rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--muted); font-weight: 600; }
+  strong { color: var(--fg); }
+  a { color: var(--accent); }
+  .resumo {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0 0;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Política de Privacidade — Orçamento</h1>
+  <p class="atualizado">Última atualização: 8 de agosto de 2026</p>
+
+  <div class="resumo">
+    <p>O Orçamento não coleta, não envia e não armazena nenhum dado seu fora do seu
+    aparelho. Não há cadastro, não há conta, não há servidor nosso.</p>
+    <p>Tudo que você anota no aplicativo — clientes, orçamentos, itens, dados da sua
+    empresa e configurações — fica gravado apenas na memória do próprio celular,
+    num banco de dados local. Nós não temos acesso a nada disso.</p>
+  </div>
+
+  <h2>Que dados o aplicativo guarda</h2>
+  <p>No seu aparelho, e somente nele:</p>
+  <ul>
+    <li>nome, telefone e observações dos clientes que você cadastrar</li>
+    <li>os orçamentos: itens, quantidades, valores, desconto, observações e status</li>
+    <li>nome, telefone, documento (CPF/CNPJ) e logo da sua empresa, usados no
+    cabeçalho do PDF</li>
+    <li>o PIN da trava do aplicativo, se você ligar essa opção — guardado de forma
+    cifrada (hash), nunca em texto puro</li>
+  </ul>
+  <p>Esses dados são apagados quando você desinstala o aplicativo. Não há backup
+  automático em nuvem — se quiser conservar os dados ao trocar de aparelho, use
+  o recurso de exportar antes de desinstalar.</p>
+
+  <h2>Permissões que o aplicativo pede</h2>
+  <table>
+    <thead>
+      <tr><th>Permissão</th><th>Para quê</th><th>Quando</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Fotos</td><td>escolher a logo da sua empresa</td><td>só quando você toca em "Escolher logo"</td></tr>
+      <tr><td>Biometria</td><td>destravar o aplicativo sem digitar o PIN</td><td>só se você ligar a trava</td></tr>
+      <tr><td>Arquivos</td><td>salvar o PDF do orçamento e o CSV exportado</td><td>só quando você gera ou compartilha um documento</td></tr>
+    </tbody>
+  </table>
+  <p>Nenhuma dessas permissões envia informação para fora do aparelho. Se você
+  recusar qualquer uma, o restante do aplicativo continua funcionando.</p>
+
+  <h2>Internet</h2>
+  <p>O aplicativo funciona inteiramente offline e não faz chamadas de rede para
+  servidores nossos — não existem.</p>
+  <p>Duas ações abrem outro aplicativo do seu celular, e é você quem decide:</p>
+  <ul>
+    <li><strong>Compartilhar o PDF do orçamento</strong> abre o menu de
+    compartilhamento do Android — WhatsApp, e-mail, ou qualquer outro app
+    instalado. Nós não enviamos nada: quem escolhe o destino e aperta enviar é
+    você.</li>
+    <li><strong>Exportar o histórico em CSV</strong> gera um arquivo e abre o
+    mesmo menu de compartilhamento. O destino é escolhido por você.</li>
+  </ul>
+  <p>Caso a compra dentro do aplicativo seja ativada em uma versão futura, a
+  validação será feita pela loja de aplicativos e pelo processador de pagamentos
+  (RevenueCat), que recebem apenas a informação necessária para confirmar a
+  compra — nunca os dados dos seus clientes ou orçamentos. Esta política será
+  atualizada antes de isso entrar em funcionamento.</p>
+
+  <h2>Anúncios e rastreamento</h2>
+  <p>O aplicativo não exibe anúncios, não usa ferramentas de análise de uso, não
+  possui rastreadores e não compartilha dados com terceiros.</p>
+
+  <h2>Crianças</h2>
+  <p>O aplicativo é destinado a profissionais autônomos que emitem orçamentos e
+  não coleta intencionalmente dados de crianças.</p>
+
+  <h2>Seus direitos</h2>
+  <p>Como nenhum dado sai do seu aparelho, você já tem controle total sobre ele:
+  apagar um registro, exportar tudo em CSV ou desinstalar o aplicativo remove as
+  informações. Não há nada armazenado conosco para solicitar acesso, correção ou
+  exclusão.</p>
+
+  <h2>Alterações nesta política</h2>
+  <p>Se esta política mudar, a data no topo será atualizada e a nova versão será
+  publicada junto com a atualização do aplicativo.</p>
+
+  <h2>Contato</h2>
+  <p>Dúvidas sobre esta política: <strong><a href="mailto:eduardoam54@gmail.com">eduardoam54@gmail.com</a></strong></p>
+
+  <footer>Orçamento — orçamento e ordem de serviço em PDF.</footer>
+</main>
+</body>
+</html>
